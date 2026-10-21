@@ -1,0 +1,107 @@
+{
+  "gerado_em": "2026-10-20T02:26:36+00:00",
+  "universo": {
+    "empresa": "001",
+    "situacoes": ["1", "3"],
+    "vinculos": 2463,
+    "dependentes": 3146
+  },
+  "resumo": {
+    "vinculos": 2463,
+    "com_erro": 610,
+    "com_alerta": 466,
+    "sem_pendencia": 1387
+  },
+  "regras": [
+    {
+      "codigo": "CERTIDAO_AUSENTE",
+      "titulo": "Certidão ausente",
+      "tipo": "erro",
+      "alvo": "servidor",
+      "descricao": "Servidor sem certidão de nascimento ou casamento anexada.",
+      "orientacao": "Solicitar o documento ao servidor e anexar ao cadastro.",
+      "servidores": 610,
+      "ocorrencias": 618
+    },
+    {
+      "codigo": "SALARIO_FAMILIA",
+      "titulo": "Salário-família sem dependente elegível",
+      "tipo": "alerta",
+      "alvo": "servidor",
+      "descricao": "Benefício marcado sem dependente na faixa de idade.",
+      "orientacao": "Revisar a marcação do benefício.",
+      "servidores": 439,
+      "ocorrencias": 445
+    },
+    {
+      "codigo": "IRRF_DIVERGENTE",
+      "titulo": "IRRF divergente do esperado",
+      "tipo": "erro",
+      "alvo": "servidor",
+      "descricao": "Valor de IRRF diferente do calculado pela regra.",
+      "orientacao": "Reprocessar a folha do vínculo.",
+      "servidores": 394,
+      "ocorrencias": 402
+    },
+    {
+      "codigo": "DEPENDENTE_CPF",
+      "titulo": "Dependente sem CPF",
+      "tipo": "recadastro",
+      "alvo": "dependente",
+      "descricao": "Dependente sem CPF informado.",
+      "orientacao": "Solicitar o CPF no recadastramento.",
+      "servidores": 318,
+      "ocorrencias": 322
+    },
+    {
+      "codigo": "SERVIDOR_SEM_FONE",
+      "titulo": "Servidor sem telefone",
+      "tipo": "conferencia",
+      "alvo": "servidor",
+      "descricao": "Cadastro sem telefone de contato.",
+      "orientacao": "Confirmar o telefone no recadastramento.",
+      "servidores": 466,
+      "ocorrencias": 470
+    },
+    {
+      "codigo": "SERVIDOR_SEM_EMAIL",
+      "titulo": "Servidor sem e-mail",
+      "tipo": "conferencia",
+      "alvo": "servidor",
+      "descricao": "Cadastro sem e-mail de contato.",
+      "orientacao": "Confirmar o e-mail no recadastramento.",
+      "servidores": 265,
+      "ocorrencias": 265
+    },
+    {
+      "codigo": "DEPENDENTE_NASCIMENTO",
+      "titulo": "Dependente sem data de nascimento",
+      "tipo": "erro",
+      "alvo": "dependente",
+      "descricao": "Dependente sem data de nascimento.",
+      "orientacao": "Completar a data no cadastro do dependente.",
+      "servidores": 6,
+      "ocorrencias": 6
+    },
+    {
+      "codigo": "INDICADOR_IDADE",
+      "titulo": "Servidores com 60 anos ou mais",
+      "tipo": "indicador",
+      "alvo": "servidor",
+      "descricao": "Indicador de perfil, não é pendência.",
+      "orientacao": "Acompanhar o planejamento de aposentadorias.",
+      "servidores": 120,
+      "ocorrencias": 120
+    },
+    {
+      "codigo": "INDICADOR_TEMPO_SERVICO",
+      "titulo": "Servidores com 25 anos de serviço",
+      "tipo": "indicador",
+      "alvo": "servidor",
+      "descricao": "Indicador de perfil, não é pendência.",
+      "orientacao": "Acompanhar o abono de permanência.",
+      "servidores": 88,
+      "ocorrencias": 88
+    }
+  ]
+}

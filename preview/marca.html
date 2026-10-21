@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Marca — Pré-Censo dos Servidores</title>
+<style>
+  :root{
+    --fundo:#F3F6FA; --texto:#14213D; --textoSec:#56637A; --borda:#DCE3EC;
+    --navy:#123C6E; --navyClaro:#8AB0E0;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:40px 24px 64px; background:var(--fundo); color:var(--texto);
+    font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  }
+  .wrap{max-width:880px;margin:0 auto}
+  h1{font-size:20px;margin:0 0 4px;letter-spacing:-.01em}
+  p.sub{margin:0 0 28px;color:var(--textoSec);font-size:13px}
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--textoSec);margin:0 0 12px;font-weight:600}
+  .bloco{background:#fff;border:1px solid var(--borda);border-radius:10px;padding:20px;margin-bottom:20px}
+  .linha{display:flex;align-items:flex-end;gap:32px;flex-wrap:wrap}
+  .amostra{text-align:center}
+  .amostra svg{display:block;color:var(--navy)}
+  .amostra span{display:block;margin-top:8px;font-size:11px;color:var(--textoSec)}
+
+  /* contexto real da sidebar */
+  .sidebar{
+    width:248px;background:#fff;border:1px solid var(--borda);border-radius:10px;
+    padding:0 20px;height:60px;display:flex;align-items:center;gap:8px;
+  }
+  .sidebar .nome{font-size:13px;font-weight:600;letter-spacing:-.01em;line-height:1.15;white-space:nowrap}
+  .sidebar .desc{font-size:11px;color:var(--textoSec);white-space:nowrap}
+
+  .escuro{background:#0d1626;border-color:#1e2a3d}
+  .escuro .sidebar{background:#0d1626;border-color:#1e2a3d}
+  .escuro .sidebar .nome{color:#e8eef7}
+  .escuro .sidebar .desc{color:#9fb0c9}
+  .escuro .amostra svg{color:var(--navyClaro)}
+  .escuro .amostra span{color:#9fb0c9}
+  .escuro h2{color:#9fb0c9}
+  .escuro .rotulo{color:#9fb0c9}
+
+  .rotulo{font-size:12px;color:var(--textoSec);margin:0 0 14px}
+  .nota{font-size:12px;color:var(--textoSec);line-height:1.6;margin:0}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;background:#EEF2F7;padding:1px 5px;border-radius:4px}
+  .escuro code{background:#1a2436;color:#c7d4e8}
+  .pares{display:flex;gap:28px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Marca do Pré-Censo dos Servidores</h1>
+  <p class="sub">Vetor de 64×64. As cores do azul seguem o tema (<code>currentColor</code>); verde e laranja são fixos.</p>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="marca" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round">
+        <path d="M36.51 6.4A26 26 0 0 1 36.51 57.6"/>
+        <path d="M27.49 57.6A26 26 0 0 1 27.49 6.4"/>
+      </g>
+      <path d="M33.4 5.36 24.74 2.32 26.3 11.18Z" fill="currentColor"/>
+      <path d="M30.6 58.64 39.26 52.82 37.7 61.68Z" fill="currentColor"/>
+      <g fill="#2FA45F">
+        <circle cx="21.8" cy="22.8" r="4.3"/>
+        <path d="M14.6 36.5V31.6a7.2 7.2 0 0 1 14.4 0v4.9Z"/>
+      </g>
+      <g fill="#F5A623">
+        <circle cx="42.2" cy="22.8" r="4.3"/>
+        <path d="M35 36.5V31.6a7.2 7.2 0 0 1 14.4 0v4.9Z"/>
+      </g>
+      <g fill="currentColor">
+        <circle cx="32" cy="20.5" r="5.2"/>
+        <path d="M23.2 36.5V32.4a8.8 8.8 0 0 1 17.6 0v4.1Z"/>
+      </g>
+      <g fill="currentColor" opacity="0.55">
+        <path d="M32 15.3a5.2 5.2 0 0 1 0 10.4Z"/>
+        <path d="M32 23.6a8.8 8.8 0 0 1 8.8 8.8v4.1H32Z"/>
+      </g>
+      <g fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.6 42.5l1.9 1.9 3.4-3.9" stroke="#2FA45F"/>
+        <path d="M20.6 47l1.9 1.9 3.4-3.9" stroke="#3E8FD9"/>
+        <path d="M20.6 51.5l1.9 1.9 3.4-3.9" stroke="#F5A623"/>
+      </g>
+      <g>
+        <rect x="26.4" y="41.3" width="14" height="2.5" rx="1.25" fill="#2FA45F"/>
+        <rect x="26.4" y="45.8" width="14" height="2.5" rx="1.25" fill="#3E8FD9"/>
+        <rect x="26.4" y="50.3" width="14" height="2.5" rx="1.25" fill="#F5A623"/>
+      </g>
+    </symbol>
+  </svg>
+
+  <div class="bloco">
+    <h2>Tamanhos</h2>
+    <div class="linha">
+      <div class="amostra"><svg width="32" height="32"><use href="#marca"/></svg><span>32 px</span></div>
+      <div class="amostra"><svg width="48" height="48"><use href="#marca"/></svg><span>48 px</span></div>
+      <div class="amostra"><svg width="64" height="64"><use href="#marca"/></svg><span>64 px</span></div>
+      <div class="amostra"><svg width="96" height="96"><use href="#marca"/></svg><span>96 px</span></div>
+      <div class="amostra"><svg width="144" height="144"><use href="#marca"/></svg><span>144 px</span></div>
+    </div>
+  </div>
+
+  <div class="bloco">
+    <h2>No sidebar · tema claro</h2>
+    <div class="sidebar">
+      <svg width="36" height="36" style="flex:0 0 36px;color:var(--navy)"><use href="#marca"/></svg>
+      <div>
+        <div class="nome">Pré-Censo dos Servidores</div>
+        <div class="desc">Diagnóstico de cadastros</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bloco escuro">
+    <h2>No sidebar · tema escuro</h2>
+    <div class="sidebar">
+      <svg width="36" height="36" style="flex:0 0 36px;color:var(--navyClaro)"><use href="#marca"/></svg>
+      <div>
+        <div class="nome">Pré-Censo dos Servidores</div>
+        <div class="desc">Diagnóstico de cadastros</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bloco">
+    <h2>Menu recolhido</h2>
+    <div class="pares">
+      <div style="width:64px;height:64px;background:#fff;border:1px solid var(--borda);border-radius:10px;display:grid;place-items:center">
+        <svg width="36" height="36" style="color:var(--navy)"><use href="#marca"/></svg>
+      </div>
+      <div style="width:64px;height:64px;background:#0d1626;border:1px solid #1e2a3d;border-radius:10px;display:grid;place-items:center">
+        <svg width="36" height="36" style="color:var(--navyClaro)"><use href="#marca"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="bloco">
+    <h2>Decisões do desenho</h2>
+    <p class="nota">
+      O PNG tinha 512 px e três linhas de conferência com checkmarks de 1 px — em 32 px isso vira
+      mancha. Aqui: a seta circular ficou com 1,7 px de traço, as pessoas foram simplificadas para
+      cabeça + ombros, e a lista mantém só o gesto (check + barra) para continuar legível.
+      O azul-marinho passou a ser <code>currentColor</code>, então no tema escuro ele clareia
+      (<code>#8AB0E0</code>) em vez de sumir no fundo <code>#0d1626</code>.
+    </p>
+  </div>
+</div>
+</body>
+</html>

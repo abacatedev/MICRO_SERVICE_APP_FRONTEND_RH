@@ -1,0 +1,109 @@
+{
+  "gerado_em": "2026-10-20T02:26:36.859829+00:00",
+  "cartoes": [
+    { "id": "irrf", "titulo": "IRRF acima da idade", "regras": ["D03", "D13"], "critica": false },
+    {
+      "id": "salfam",
+      "titulo": "Salário-família acima da idade",
+      "regras": ["D04", "D14"],
+      "critica": false
+    },
+    { "id": "depCpf", "titulo": "Dependente sem CPF", "regras": ["D01"], "critica": false },
+    { "id": "depNasc", "titulo": "Dependente sem nascimento", "regras": ["D16"], "critica": false },
+    { "id": "cert", "titulo": "Certidão ausente", "regras": ["D12"], "critica": true },
+    { "id": "semEmail", "titulo": "Servidor sem e-mail", "regras": ["S02"], "critica": false },
+    { "id": "semFone", "titulo": "Servidor sem celular", "regras": ["S01"], "critica": false }
+  ],
+  "total": {
+    "codigo": "ALL",
+    "nome": "Toda a Prefeitura",
+    "vinculos": 2463,
+    "com_erro": 610,
+    "com_alerta": 520,
+    "sem_pendencia": 1333,
+    "dependentes": 3150,
+    "conformidade": 54.1,
+    "cartoes": {
+      "irrf": 394,
+      "salfam": 439,
+      "depCpf": 318,
+      "depNasc": 6,
+      "cert": 610,
+      "semEmail": 265,
+      "semFone": 466
+    },
+    "regras": {
+      "D01": 318,
+      "D03": 379,
+      "D04": 421,
+      "D12": 610,
+      "D13": 15,
+      "D14": 18,
+      "D16": 6,
+      "S01": 466,
+      "S02": 265
+    }
+  },
+  "divisoes": [
+    {
+      "codigo": "000006",
+      "nome": "SECRETARIA MUNICIPAL DE EDUCAÇÃO",
+      "vinculos": 1416,
+      "com_erro": 258,
+      "com_alerta": 268,
+      "sem_pendencia": 890,
+      "dependentes": 1941,
+      "conformidade": 62.9,
+      "cartoes": {
+        "irrf": 164,
+        "salfam": 175,
+        "depCpf": 142,
+        "depNasc": 3,
+        "cert": 374,
+        "semEmail": 101,
+        "semFone": 158
+      },
+      "regras": { "D01": 142, "D03": 158, "D04": 170, "D12": 374, "S01": 158, "S02": 101 }
+    },
+    {
+      "codigo": "000005",
+      "nome": "SECRETARIA MUNICIPAL DE SAÚDE",
+      "vinculos": 532,
+      "com_erro": 194,
+      "com_alerta": 143,
+      "sem_pendencia": 195,
+      "dependentes": 594,
+      "conformidade": 36.7,
+      "cartoes": {
+        "irrf": 117,
+        "salfam": 143,
+        "depCpf": 100,
+        "depNasc": 2,
+        "cert": 119,
+        "semEmail": 89,
+        "semFone": 174
+      },
+      "regras": { "D01": 100, "D03": 112, "D04": 138, "D12": 119, "S01": 174, "S02": 89 }
+    },
+    {
+      "codigo": "000099",
+      "nome": "SECRETARIA MUNICIPAL DE OBRAS E SERVIÇOS URBANOS",
+      "vinculos": 10,
+      "com_erro": 5,
+      "com_alerta": 2,
+      "sem_pendencia": 3,
+      "dependentes": 12,
+      "conformidade": 30,
+      "cartoes": {
+        "irrf": 2,
+        "salfam": 3,
+        "depCpf": 1,
+        "depNasc": 0,
+        "cert": 5,
+        "semEmail": 2,
+        "semFone": 1
+      },
+      "regras": { "D01": 1, "D12": 5, "S01": 1, "S02": 2 }
+    }
+  ]
+}

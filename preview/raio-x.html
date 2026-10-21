@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Raio-X das Secretarias — preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --azul-escuro: #0c2350;
+        --azul: #1351b4;
+        --azul-claro: #dbe8fb;
+        --azul-suave: #eaf1fc;
+        --laranja: #e0731f;
+        --critico: #b42318;
+        --critico-bg: #fdecea;
+        --critico-borda: #f1b8b2;
+        --fundo: #f3f6fa;
+        --borda: #dce3ec;
+        --borda-suave: #e6ebf2;
+        --entrada: #c9d3e1;
+        --tracejado: #9aa6ba;
+        --texto: #14213d;
+        --texto-sec: #56637a;
+        --rotulo: #3a465c;
+        --trilho: #eef2f7;
+        --cinza: #d5dce6;
+        --roxo: #8e4ec6;
+        --verde: #2a9d8f;
+        --ouro: #b7791f;
+        --ambar: #b9470e;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body {
+        background: var(--fundo);
+        color: var(--texto);
+        font-family: "IBM Plex Sans", ui-sans-serif, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        font-size: 13px;
+        -webkit-font-smoothing: antialiased;
+      }
+      /* números grandes em Plex Condensed, como no guia */
+      .rcard .vl, .cat .big, .alerta .n, .donut .centro b {
+        font-family: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+        font-weight: 600;
+      }
+      .tabular { font-variant-numeric: tabular-nums; }
+      .app { display: flex; min-height: 100vh; }
+
+      /* ---------- menu do produto ---------- */
+      .app-nav {
+        width: 224px; flex-shrink: 0; background: #fff; border-right: 1px solid #ebedf2;
+        padding: 14px 10px; display: flex; flex-direction: column; gap: 2px;
+        transition: width 0.2s ease, padding 0.2s ease;
+      }
+      .brand { display: flex; align-items: center; gap: 8px; padding: 0 6px 14px; }
+      .brand-mark { flex: 0 0 29px; width: 29px; height: 29px; color: #123C6E; }
+      .brand b { font-size: 12px; letter-spacing: -0.01em; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .brand span { display: block; font-size: 10px; color: #64748b; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .nav-trigger {
+        margin-left: auto; width: 22px; height: 22px; flex-shrink: 0; border: 0; border-radius: 6px;
+        background: transparent; color: #64748b; cursor: pointer; font-family: inherit;
+        font-size: 13px; line-height: 1; display: grid; place-items: center;
+      }
+      .nav-trigger:hover { background: #f1f5f9; color: var(--texto); }
+      .app-nav .grp {
+        font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;
+        font-weight: 600; padding: 8px 8px 4px;
+      }
+      .app-nav a {
+        display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 8px;
+        font-size: 12px; color: #475569; text-decoration: none;
+      }
+      .app-nav a.on { background: #eef2ff; color: #4f46e5; font-weight: 600; }
+      .app-nav a i { width: 14px; height: 14px; display: inline-block; background: currentColor; opacity: 0.55; border-radius: 3px; }
+
+      /* modo ícone: 60px, só os ícones */
+      .app.min .app-nav { width: 60px; padding: 14px 8px; }
+      .app.min .brand { justify-content: center; flex-wrap: wrap; gap: 6px; padding: 0 0 10px; }
+      .app.min .brand b { display: none; }
+      .app.min .nav-trigger { margin-left: 0; }
+      .app.min .app-nav .grp { display: none; }
+      .app.min .app-nav a { justify-content: center; padding: 7px 0; font-size: 0; }
+
+      /* ---------- conteúdo ---------- */
+      .main { flex: 1; min-width: 0; padding: 14px 18px 22px; }
+
+      .grid { display: grid; grid-template-columns: 262px minmax(0, 1fr); gap: 10px; align-items: start; }
+
+      /* ---------- sidebar de filtros ---------- */
+      .side { background: #fff; border: 1px solid var(--borda); border-radius: 10px; padding: 10px; }
+      .side h3 {
+        font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em;
+        color: var(--texto-sec); margin: 0 0 5px; font-weight: 600;
+      }
+      .select {
+        height: 32px; border: 1px solid var(--borda); border-radius: 7px; background: #fff;
+        display: flex; align-items: center; justify-content: space-between; padding: 0 9px;
+        font-size: 11.5px; color: var(--texto);
+      }
+      .select span { color: var(--texto-sec); font-size: 9px; }
+      .pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+      .pill {
+        height: 26px; border-radius: 999px; border: 1px solid var(--borda); background: #fff;
+        color: var(--texto); font-size: 10.5px; padding: 0 9px; display: inline-flex; align-items: center;
+        font-family: inherit; cursor: pointer;
+      }
+      .pill.on { background: var(--azul-escuro); border-color: var(--azul-escuro); color: #fff; font-weight: 500; }
+
+      .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+      .rcard {
+        min-height: 70px; border: 1px solid var(--borda); border-radius: 9px; background: #fff;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 3px; padding: 6px 4px; cursor: pointer; font-family: inherit;
+      }
+      .rcard .nm { font-size: 10px; font-weight: 600; line-height: 1.15; text-align: center; color: var(--texto); }
+      .rcard .vl { font-size: 19px; font-weight: 600; line-height: 1; color: var(--texto); font-variant-numeric: tabular-nums; }
+      .rcard.crit { grid-column: 1 / -1; border-color: var(--critico-borda); }
+      .rcard.crit .nm, .rcard.crit .vl { color: var(--critico); }
+      .rcard.crit.on { background: var(--critico-bg); border-color: var(--critico); box-shadow: inset 0 0 0 1px var(--critico); }
+      .rcard .tag {
+        font-size: 8px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+        background: var(--critico); color: #fff; border-radius: 3px; padding: 1px 4px;
+      }
+      .limpar {
+        margin-top: 8px; background: none; border: 0; padding: 0; font-family: inherit;
+        font-size: 10.5px; color: var(--azul); text-decoration: underline; cursor: pointer;
+      }
+
+      /* ---------- abas ---------- */
+      .tabs {
+        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px;
+        background: #fff; border: 1px solid var(--borda); border-radius: 10px;
+        padding: 4px; margin-bottom: 10px;
+      }
+      .tab {
+        height: 36px; width: 100%; border: 0; border-radius: 7px; background: transparent;
+        font-family: inherit; font-size: 13px; font-weight: 500; color: var(--texto-sec);
+        cursor: pointer; transition: background-color 0.15s, color 0.15s;
+      }
+      .tab:hover { background: var(--fundo); }
+      .tab.on { background: var(--azul-escuro); color: #fff; }
+
+      /* ---------- cards ---------- */
+      .card { background: #fff; border: 1px solid var(--borda); border-radius: 10px; }
+      .card-h { padding: 10px 12px 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+      .card-h h2 { font-size: 12px; margin: 0; font-weight: 600; color: var(--texto); }
+      .card-h p { margin: 3px 0 0; font-size: 10.5px; color: var(--texto-sec); line-height: 1.4; }
+      .card-b { padding: 6px 12px 10px; }
+      .ghost-btn {
+        height: 25px; border: 1px solid var(--borda); border-radius: 6px; background: #fff;
+        font-family: inherit; font-size: 10px; color: var(--texto-sec); padding: 0 8px;
+        opacity: 0.7; cursor: not-allowed; white-space: nowrap;
+      }
+      .row2 { display: grid; grid-template-columns: 3fr 2fr; gap: 10px; margin-top: 10px; }
+
+      /* ---------- ranking ---------- */
+      .rank { list-style: none; margin: 2px 0 0; padding: 0; }
+      .rank li { display: flex; align-items: center; gap: 7px; padding: 4px 5px; border-radius: 6px; }
+      .rank li .nm { width: 96px; flex-shrink: 0; font-size: 10.5px; color: var(--texto); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .rank li .trilho { flex: 1; height: 7px; background: var(--trilho); border-radius: 999px; overflow: hidden; }
+      .rank li .trilho i { display: block; height: 100%; border-radius: 999px; background: var(--critico); }
+      .rank li .num { width: 34px; text-align: right; font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+      /* ---------- donuts ---------- */
+      .donut-wrap { display: flex; align-items: center; gap: 12px; }
+      .donut { width: 132px; height: 132px; border-radius: 50%; position: relative; flex-shrink: 0; }
+      .donut::after { content: ""; position: absolute; inset: 23%; border-radius: 50%; background: #fff; }
+      .donut .centro {
+        position: absolute; inset: 0; display: grid; place-content: center; text-align: center; z-index: 1;
+      }
+      .donut .centro small { display: block; font-size: 8px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--texto-sec); }
+      .donut .centro b { display: block; font-size: 13px; color: var(--azul-escuro); font-variant-numeric: tabular-nums; }
+      .legend { list-style: none; margin: 0; padding: 0; flex: 1; min-width: 0; }
+      .legend li { display: flex; align-items: center; gap: 6px; padding: 2px 0; font-size: 10.5px; }
+      .legend i { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
+      .legend .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .legend .vl { font-weight: 600; font-variant-numeric: tabular-nums; }
+      .legend .pc { width: 34px; text-align: right; color: var(--texto-sec); font-variant-numeric: tabular-nums; }
+
+      .cargos { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+      .cargos li { display: flex; align-items: center; gap: 7px; }
+      .cargos .nm { width: 124px; flex-shrink: 0; font-size: 10.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .cargos .trilho { flex: 1; height: 6px; background: var(--trilho); border-radius: 999px; overflow: hidden; }
+      .cargos .trilho i { display: block; height: 100%; background: var(--roxo); border-radius: 999px; }
+      .cargos .num { width: 32px; text-align: right; font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+      /* ---------- qualidade ---------- */
+      .cats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+      .cat { border: 1px solid var(--borda); border-radius: 8px; padding: 8px; }
+      .cat .bar { display: block; width: 28px; height: 3px; border-radius: 999px; }
+      .cat .big { font-size: 19px; font-weight: 600; margin: 7px 0 0; line-height: 1; font-variant-numeric: tabular-nums; }
+      .cat .lb { font-size: 10.5px; font-weight: 600; margin: 6px 0 0; }
+      .cat .dt { font-size: 9.5px; color: var(--texto-sec); margin: 2px 0 0; line-height: 1.35; }
+
+      .faixas { display: grid; grid-template-columns: repeat(8, 1fr); gap: 7px; align-items: end; height: 92px; }
+      .faixa { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+      .faixa .col { width: 100%; background: var(--trilho); border: 1px dashed var(--borda); border-bottom: 0; border-radius: 4px 4px 0 0; }
+      .faixa span { display: block; text-align: center; font-size: 9px; color: var(--texto-sec); margin-top: 4px; }
+      .faixa.lar span { color: var(--laranja); font-weight: 600; }
+      .aviso {
+        margin-top: 8px; border: 1px dashed var(--borda); background: var(--fundo); border-radius: 6px;
+        padding: 6px 9px; font-size: 10px; color: var(--texto-sec);
+      }
+
+      .alertas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .alerta { border: 1px solid var(--borda); border-radius: 8px; padding: 8px; }
+      .alerta .n { font-size: 19px; font-weight: 600; color: var(--ambar); line-height: 1; font-variant-numeric: tabular-nums; }
+      .alerta .t { font-size: 10.5px; font-weight: 600; margin: 6px 0 0; line-height: 1.3; }
+      .alerta .d { font-size: 9.5px; color: var(--texto-sec); margin: 2px 0 0; line-height: 1.35; }
+
+      /* ---------- tabela ---------- */
+      .tbl-wrap { max-height: 560px; overflow: auto; border-radius: 10px; background: #fff; border: 1px solid var(--borda); }
+      table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 10.5px; }
+      thead th {
+        position: sticky; top: 0; background: #fff; z-index: 2; text-align: right;
+        font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--texto-sec);
+        font-weight: 600; padding: 7px 8px; box-shadow: inset 0 -1px 0 var(--borda); white-space: nowrap;
+      }
+      thead th:first-child { text-align: left; }
+      thead th.crit { color: var(--critico); }
+      tbody td { padding: 6px 8px; text-align: right; box-shadow: inset 0 -1px 0 var(--borda); font-variant-numeric: tabular-nums; white-space: nowrap; }
+      tbody td:first-child { text-align: left; }
+      tbody tr:hover { background: #f8fafd; }
+      tbody td.crit { color: var(--critico); font-weight: 600; }
+      tbody td.abrir { color: var(--azul); text-decoration: underline; font-size: 9.5px; }
+      .tag-lot { font-size: 8px; font-weight: 600; color: var(--ouro); background: #fdf3e7; border-radius: 3px; padding: 1px 4px; margin-left: 4px; }
+      tfoot td { background: var(--fundo); padding: 7px 8px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+      tfoot td:first-child { text-align: left; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--texto-sec); }
+
+      .fonte { font-size: 9.5px; color: var(--texto-sec); line-height: 1.5; margin: 10px 2px 0; }
+      .painel { display: none; }
+      .painel.on { display: block; }
+      .dupla { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+
+      @media (max-width: 1180px) {
+        .app-nav { display: none; }
+        .grid { grid-template-columns: 1fr; }
+        .row2, .dupla { grid-template-columns: 1fr; }
+        .cats { grid-template-columns: repeat(2, 1fr); }
+        .alertas { grid-template-columns: repeat(2, 1fr); }
+      }
+
+      /* ---------- tokens do guia visual (20/10/2026) ---------- */
+      .side h3 { font-size: 12px; letter-spacing: 0; text-transform: none; }
+      .select { font-size: 14px; font-weight: 600; height: 44px; border-radius: 6px; border-color: var(--entrada); }
+      .pill { font-size: 12px; font-weight: 500; height: 32px; }
+      .pill.on { background: var(--azul); border-color: var(--azul); }
+      .limpar { font-size: 13px; font-weight: 600; }
+      .tab { font-size: 14px; font-weight: 600; height: 40px; color: var(--texto); }
+      .ghost-btn { font-size: 12px; }
+      .rcard .nm { font-size: 11px; color: var(--rotulo); }
+      .rcard .vl { font-size: 22px; }
+      .rcard .tag { font-size: 11px; letter-spacing: 0.04em; border-radius: 999px; }
+      .card-h h2 { font-size: 15px; letter-spacing: -0.01em; }
+      .card-h p { font-size: 12px; margin-top: 6px; }
+      .rank li .nm, .rank li .num { font-size: 12px; }
+      .legend li { font-size: 12px; }
+      .legend .pc { font-size: 12px; }
+      .donut .centro small { font-size: 10px; text-transform: none; letter-spacing: 0; }
+      .donut .centro b { font-size: 18px; }
+      .cargos .nm, .cargos .num { font-size: 12px; }
+      .cat .big { font-size: 22px; }
+      .cat .lb { font-size: 13px; }
+      .cat .dt { font-size: 12px; }
+      .faixa span { font-size: 12px; }
+      .aviso, .fonte { font-size: 12px; }
+      .alerta .t { font-size: 12px; font-weight: 500; }
+      .alerta .d { font-size: 11px; }
+      table { font-size: 13px; }
+      thead th { font-size: 11px; letter-spacing: 0.04em; box-shadow: inset 0 -2px 0 var(--borda); }
+      tbody td { box-shadow: inset 0 -1px 0 var(--borda-suave); }
+      tbody td.abrir {
+        font-size: 12px; font-weight: 600; text-decoration: none;
+        border: 1px solid var(--azul); border-radius: 999px; padding: 2px 8px;
+      }
+      .tag-lot { font-size: 11px; color: var(--ambar); background: transparent; padding: 0; }
+      tfoot td:first-child { font-size: 11px; }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <!-- menu do produto -->
+      <nav class="app-nav">
+        <div class="brand">
+          <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+            <g fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round">
+              <path d="M36.51 6.4A26 26 0 0 1 36.51 57.6"/>
+              <path d="M27.49 57.6A26 26 0 0 1 27.49 6.4"/>
+            </g>
+            <path d="M33.4 5.36 24.74 2.32 26.3 11.18Z" fill="currentColor"/>
+            <path d="M30.6 58.64 39.26 52.82 37.7 61.68Z" fill="currentColor"/>
+            <g fill="#2FA45F">
+              <circle cx="21.8" cy="22.8" r="4.3"/>
+              <path d="M14.6 36.5V31.6a7.2 7.2 0 0 1 14.4 0v4.9Z"/>
+            </g>
+            <g fill="#F5A623">
+              <circle cx="42.2" cy="22.8" r="4.3"/>
+              <path d="M35 36.5V31.6a7.2 7.2 0 0 1 14.4 0v4.9Z"/>
+            </g>
+            <g fill="currentColor">
+              <circle cx="32" cy="20.5" r="5.2"/>
+              <path d="M23.2 36.5V32.4a8.8 8.8 0 0 1 17.6 0v4.1Z"/>
+            </g>
+            <g fill="currentColor" opacity="0.55">
+              <path d="M32 15.3a5.2 5.2 0 0 1 0 10.4Z"/>
+              <path d="M32 23.6a8.8 8.8 0 0 1 8.8 8.8v4.1H32Z"/>
+            </g>
+            <g fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.6 42.5l1.9 1.9 3.4-3.9" stroke="#2FA45F"/>
+              <path d="M20.6 47l1.9 1.9 3.4-3.9" stroke="#3E8FD9"/>
+              <path d="M20.6 51.5l1.9 1.9 3.4-3.9" stroke="#F5A623"/>
+            </g>
+            <g>
+              <rect x="26.4" y="41.3" width="14" height="2.5" rx="1.25" fill="#2FA45F"/>
+              <rect x="26.4" y="45.8" width="14" height="2.5" rx="1.25" fill="#3E8FD9"/>
+              <rect x="26.4" y="50.3" width="14" height="2.5" rx="1.25" fill="#F5A623"/>
+            </g>
+          </svg>
+          <b>Pré-Censo dos Servidores<span>Diagnóstico de cadastros</span></b>
+          <button class="nav-trigger" id="nav-trigger" title="Recolher menu" aria-label="Recolher menu">«</button>
+        </div>
+        <div class="grp">Análise</div>
+        <a href="#" title="Visão geral"><i></i>Visão geral</a>
+        <a href="#" title="Vendas"><i></i>Vendas</a>
+        <a href="#" title="Clientes"><i></i>Clientes</a>
+        <a href="#" title="Produtos"><i></i>Produtos</a>
+        <a href="#" class="on" title="Raio-X Secretarias"><i></i>Raio-X Secretarias</a>
+        <div class="grp">Operação</div>
+        <a href="#" title="Relatórios"><i></i>Relatórios</a>
+        <a href="#" title="Configurações"><i></i>Configurações</a>
+      </nav>
+
+      <div class="main">
+        <div class="grid">
+          <!-- sidebar -->
+          <aside class="side">
+            <h3>Secretaria</h3>
+            <div class="select">Toda a Prefeitura (2.463) <span>▼</span></div>
+
+            <h3 style="margin-top: 12px">Comparar secretarias com</h3>
+            <div class="pills">
+              <button class="pill on">Todas</button>
+              <button class="pill">30+ vínculos</button>
+              <button class="pill">100+ vínculos</button>
+            </div>
+
+            <h3 style="margin-top: 12px">Regra em foco</h3>
+            <div class="cards">
+              <button class="rcard"><span class="nm">IRRF acima da idade</span><span class="vl">447</span></button>
+              <button class="rcard"><span class="nm">Salário-família acima de 14</span><span class="vl">443</span></button>
+              <button class="rcard"><span class="nm">Dependente sem CPF</span><span class="vl">317</span></button>
+              <button class="rcard"><span class="nm">Dependente sem nascimento</span><span class="vl">5</span></button>
+              <button class="rcard crit on">
+                <span class="nm">Certidão incompleta</span>
+                <span class="tag">Crítica</span>
+                <span class="vl">1.083</span>
+              </button>
+              <button class="rcard"><span class="nm">Servidor sem e-mail</span><span class="vl">218</span></button>
+              <button class="rcard"><span class="nm">Servidor sem telefone</span><span class="vl">61</span></button>
+            </div>
+            <button class="limpar">× Limpar filtros</button>
+          </aside>
+
+          <!-- área das abas -->
+          <div>
+            <div class="tabs">
+              <button class="tab on" data-tab="regra">Regra em foco</button>
+              <button class="tab" data-tab="quadro">Quadro</button>
+              <button class="tab" data-tab="qualidade">Qualidade</button>
+              <button class="tab" data-tab="tabela">Tabela</button>
+            </div>
+
+            <!-- ================= REGRA EM FOCO ================= -->
+            <section class="painel on" id="regra">
+              <div class="card">
+                <div class="card-h">
+                  <div>
+                    <h2>Certidão incompleta: % dos vínculos por secretaria</h2>
+                    <p>Tracejado: média da Prefeitura (44,0%). Laranja: acima da média.</p>
+                  </div>
+                  <button class="ghost-btn" title="Tela de lista nominal (em construção)">Ver lista nominal</button>
+                </div>
+                <div class="card-b">
+                  <svg viewBox="0 0 760 196" style="width: 100%; height: auto; display: block" role="img" aria-label="Percentual de certidões incompletas por secretaria">
+                    <g stroke="#dce3ec" stroke-dasharray="3 4">
+                      <line x1="34" y1="10" x2="716" y2="10" />
+                      <line x1="34" y1="45" x2="716" y2="45" />
+                      <line x1="34" y1="80" x2="716" y2="80" />
+                      <line x1="34" y1="115" x2="716" y2="115" />
+                      <line x1="34" y1="150" x2="716" y2="150" />
+                    </g>
+                    <g fill="#56637a" font-size="9.5" font-family="inherit">
+                      <text x="4" y="13">60%</text>
+                      <text x="4" y="48">45%</text>
+                      <text x="4" y="83">30%</text>
+                      <text x="4" y="118">15%</text>
+                      <text x="18" y="153">0</text>
+                    </g>
+
+                    <!-- barras: laranja = acima da média -->
+                    <g>
+                      <rect x="44" y="34.7" width="26" height="115.3" rx="3" fill="#e0731f" />
+                      <rect x="91.1" y="68.3" width="26" height="81.7" rx="3" fill="#1351b4" />
+                      <rect x="138.2" y="54.8" width="26" height="95.2" rx="3" fill="#1351b4" />
+                      <rect x="185.3" y="31.9" width="26" height="118.1" rx="3" fill="#e0731f" />
+                      <rect x="232.4" y="103.3" width="26" height="46.7" rx="3" fill="#1351b4" />
+                      <rect x="279.5" y="91.7" width="26" height="58.3" rx="3" fill="#1351b4" />
+                      <rect x="326.6" y="35.4" width="26" height="114.6" rx="3" fill="#e0731f" />
+                      <rect x="373.7" y="20.3" width="26" height="129.7" rx="3" fill="#e0731f" />
+                      <rect x="420.8" y="100.8" width="26" height="49.2" rx="3" fill="#1351b4" />
+                      <rect x="467.9" y="72.3" width="26" height="77.7" rx="3" fill="#1351b4" />
+                      <rect x="515" y="40.1" width="26" height="109.9" rx="3" fill="#e0731f" />
+                      <rect x="562.1" y="72.3" width="26" height="77.7" rx="3" fill="#1351b4" />
+                      <rect x="609.2" y="91.7" width="26" height="58.3" rx="3" fill="#1351b4" />
+                      <rect x="656.3" y="111" width="26" height="39" rx="3" fill="#1351b4" />
+                    </g>
+
+                    <!-- rótulos -->
+                    <g fill="#14213d" font-size="9" font-family="inherit" text-anchor="middle">
+                      <text x="57" y="30">49,4%</text>
+                      <text x="104.1" y="63.6">35,0%</text>
+                      <text x="151.2" y="50.1">40,8%</text>
+                      <text x="198.3" y="27.2">50,6%</text>
+                      <text x="245.4" y="98.6">20,0%</text>
+                      <text x="292.5" y="87">25,0%</text>
+                      <text x="339.6" y="30.7">49,1%</text>
+                      <text x="386.7" y="15.6">55,6%</text>
+                      <text x="433.8" y="96.1">21,1%</text>
+                      <text x="480.9" y="67.6">33,3%</text>
+                      <text x="528" y="35.4">47,1%</text>
+                      <text x="575.1" y="67.6">33,3%</text>
+                      <text x="622.2" y="87">25,0%</text>
+                      <text x="669.3" y="106.3">16,7%</text>
+                    </g>
+
+                    <!-- média -->
+                    <line x1="34" y1="47.3" x2="716" y2="47.3" stroke="#56637a" stroke-width="1.3" stroke-dasharray="6 4" />
+                    <text x="716" y="44" font-size="9" fill="#56637a" text-anchor="end" font-family="inherit">44,0%</text>
+
+                    <!-- eixos -->
+                    <g fill="#56637a" font-size="9" font-family="inherit" text-anchor="end">
+                      <text x="57" y="168" transform="rotate(-32 57 168)">Educação</text>
+                      <text x="104.1" y="168" transform="rotate(-32 104.1 168)">Saúde</text>
+                      <text x="151.2" y="168" transform="rotate(-32 151.2 168)">Assistência Social</text>
+                      <text x="198.3" y="168" transform="rotate(-32 198.3 168)">Administração</text>
+                      <text x="245.4" y="168" transform="rotate(-32 245.4 168)">Gabinete</text>
+                      <text x="292.5" y="168" transform="rotate(-32 292.5 168)">Fazenda</text>
+                      <text x="339.6" y="168" transform="rotate(-32 339.6 168)">Infraestrutura</text>
+                      <text x="386.7" y="168" transform="rotate(-32 386.7 168)">Turismo e Cultura</text>
+                      <text x="433.8" y="168" transform="rotate(-32 433.8 168)">Meio Ambiente</text>
+                      <text x="480.9" y="168" transform="rotate(-32 480.9 168)">Esporte e Lazer</text>
+                      <text x="528" y="168" transform="rotate(-32 528 168)">Finanças</text>
+                      <text x="575.1" y="168" transform="rotate(-32 575.1 168)">Assuntos Estratégicos</text>
+                      <text x="622.2" y="168" transform="rotate(-32 622.2 168)">Agricultura</text>
+                      <text x="669.3" y="168" transform="rotate(-32 669.3 168)">Planejamento</text>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="row2">
+                <div class="card">
+                  <div class="card-h">
+                    <div>
+                      <h2>Peso da regra no volume de cada secretaria</h2>
+                      <p>Empilhado: regra em foco (embaixo) e demais regras (acima).</p>
+                    </div>
+                  </div>
+                  <div class="card-b">
+                    <svg viewBox="0 0 460 186" style="width: 100%; height: auto; display: block" role="img" aria-label="Volume de apontamentos por secretaria">
+                      <g stroke="#dce3ec" stroke-dasharray="3 4">
+                        <line x1="30" y1="10" x2="450" y2="10" />
+                        <line x1="30" y1="45" x2="450" y2="45" />
+                        <line x1="30" y1="80" x2="450" y2="80" />
+                        <line x1="30" y1="115" x2="450" y2="115" />
+                        <line x1="30" y1="150" x2="450" y2="150" />
+                      </g>
+                      <g fill="#56637a" font-size="9" font-family="inherit">
+                        <text x="2" y="13">1.4k</text>
+                        <text x="2" y="48">1k</text>
+                        <text x="8" y="83">700</text>
+                        <text x="8" y="118">350</text>
+                        <text x="16" y="153">0</text>
+                      </g>
+
+                      <!-- Educação: total 1310, foco 700 -->
+                      <rect x="38" y="19" width="17" height="61" fill="#b42318" />
+                      <rect x="38" y="80" width="17" height="70" fill="#d5dce6" rx="2" />
+                      <text x="46.5" y="15" font-size="8" fill="#14213d" text-anchor="middle" font-family="inherit">700</text>
+
+                      <!-- Saúde: total 672, foco 186 -->
+                      <rect x="66" y="131.4" width="17" height="18.6" fill="#b42318" />
+                      <rect x="66" y="64.2" width="17" height="67.2" fill="#d5dce6" rx="2" />
+                      <text x="74.5" y="60" font-size="8" fill="#14213d" text-anchor="middle" font-family="inherit">186</text>
+
+                      <!-- Assistência: total 156, foco 53 -->
+                      <rect x="94" y="144.7" width="17" height="5.3" fill="#b42318" />
+                      <rect x="94" y="129.1" width="17" height="15.6" fill="#d5dce6" rx="2" />
+                      <text x="102.5" y="125" font-size="8" fill="#14213d" text-anchor="middle" font-family="inherit">53</text>
+
+                      <!-- Administração: total 119, foco 43 -->
+                      <rect x="122" y="145.7" width="17" height="4.3" fill="#b42318" />
+                      <rect x="122" y="133.8" width="17" height="11.9" fill="#d5dce6" rx="2" />
+                      <text x="130.5" y="130" font-size="8" fill="#14213d" text-anchor="middle" font-family="inherit">43</text>
+
+                      <!-- Gabinete: total 24, foco 12 -->
+                      <rect x="150" y="148.8" width="17" height="1.2" fill="#b42318" />
+                      <rect x="150" y="146.4" width="17" height="2.4" fill="#d5dce6" rx="2" />
+                      <text x="158.5" y="142" font-size="8" fill="#14213d" text-anchor="middle" font-family="inherit">12</text>
+
+                      <!-- Fazenda: total 41, foco 14 -->
+                      <rect x="178" y="148.6" width="17" height="1.4" fill="#b42318" />
+                      <rect x="178" y="144.5" width="17" height="4.1" fill="#d5dce6" rx="2" />
+                      <text x="186.5" y="140" font-size="8" fill="#14213d" text-anchor="middle" font-family="inherit">14</text>
+
+                      <!-- Infraestrutura: total 83, foco 27 -->
+                      <rect x="206" y="147.3" width="17" height="2.7" fill="#b42318" />
+                      <rect x="206" y="139" width="17" height="8.3" fill="#d5dce6" rx="2" />
+                      <text x="214.5" y="135" font-size="8" fill="#14213d" text-anchor="middle" font-family="inherit">27</text>
+
+                      <!-- Turismo: total 59, foco 20 -->
+                      <rect x="234" y="148" width="17" height="2" fill="#b42318" />
+                      <rect x="234" y="142.1" width="17" height="5.9" fill="#d5dce6" rx="2" />
+                      <text x="242.5" y="138" font-size="8" fill="#14213d" text-anchor="middle" font-family="inherit">20</text>
+
+                      <!-- Meio Ambiente: total 17, foco 4 -->
+                      <rect x="262" y="149.6" width="17" height="0.4" fill="#b42318" />
+                      <rect x="262" y="147.9" width="17" height="1.7" fill="#d5dce6" rx="2" />
+                      <text x="270.5" y="144" font-size="8" fill="#14213d" text-anchor="middle" font-family="inherit">4</text>
+
+                      <!-- Esporte: total 35, foco 6 -->
+                      <rect x="290" y="149.4" width="17" height="0.6" fill="#b42318" />
+                      <rect x="290" y="146.5" width="17" height="2.9" fill="#d5dce6" rx="2" />
+                      <text x="298.5" y="142" font-size="8" fill="#14213d" text-anchor="middle" font-family="inherit">6</text>
+
+                      <!-- Finanças: total 25, foco 8 -->
+                      <rect x="318" y="149.2" width="17" height="0.8" fill="#b42318" />
+                      <rect x="318" y="147.5" width="17" height="1.7" fill="#d5dce6" rx="2" />
+                      <text x="326.5" y="143" font-size="8" fill="#14213d" text-anchor="middle" font-family="inherit">8</text>
+
+                      <!-- SEAE: total 17, foco 5 -->
+                      <rect x="346" y="149.5" width="17" height="0.5" fill="#b42318" />
+                      <rect x="346" y="147.9" width="17" height="1.6" fill="#d5dce6" rx="2" />
+                      <text x="354.5" y="144" font-size="8" fill="#14213d" text-anchor="middle" font-family="inherit">5</text>
+
+                      <!-- Agricultura: total 9, foco 3 -->
+                      <rect x="374" y="149.7" width="17" height="0.3" fill="#b42318" />
+                      <rect x="374" y="148.8" width="17" height="0.9" fill="#d5dce6" rx="2" />
+                      <text x="382.5" y="145" font-size="8" fill="#14213d" text-anchor="middle" font-family="inherit">3</text>
+
+                      <!-- Planejamento: total 7, foco 2 -->
+                      <rect x="402" y="149.8" width="17" height="0.2" fill="#b42318" />
+                      <rect x="402" y="149.1" width="17" height="0.7" fill="#d5dce6" rx="2" />
+                      <text x="410.5" y="145" font-size="8" fill="#14213d" text-anchor="middle" font-family="inherit">2</text>
+
+                      <g fill="#56637a" font-size="8.5" font-family="inherit" text-anchor="end">
+                        <text x="46.5" y="164" transform="rotate(-32 46.5 164)">Educação</text>
+                        <text x="74.5" y="164" transform="rotate(-32 74.5 164)">Saúde</text>
+                        <text x="102.5" y="164" transform="rotate(-32 102.5 164)">Assist. Social</text>
+                        <text x="130.5" y="164" transform="rotate(-32 130.5 164)">Administração</text>
+                        <text x="158.5" y="164" transform="rotate(-32 158.5 164)">Gabinete</text>
+                        <text x="186.5" y="164" transform="rotate(-32 186.5 164)">Fazenda</text>
+                        <text x="214.5" y="164" transform="rotate(-32 214.5 164)">Infraestrutura</text>
+                        <text x="242.5" y="164" transform="rotate(-32 242.5 164)">Turismo</text>
+                        <text x="270.5" y="164" transform="rotate(-32 270.5 164)">Meio Amb.</text>
+                        <text x="298.5" y="164" transform="rotate(-32 298.5 164)">Esporte</text>
+                        <text x="326.5" y="164" transform="rotate(-32 326.5 164)">Finanças</text>
+                        <text x="354.5" y="164" transform="rotate(-32 354.5 164)">S. Estratégicos</text>
+                        <text x="382.5" y="164" transform="rotate(-32 382.5 164)">Agricultura</text>
+                        <text x="410.5" y="164" transform="rotate(-32 410.5 164)">Planejamento</text>
+                      </g>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-h">
+                    <div>
+                      <h2>Onde estão os casos</h2>
+                      <p>Sete secretarias com mais vínculos em certidão incompleta.</p>
+                    </div>
+                  </div>
+                  <div class="card-b">
+                    <ul class="rank">
+                      <li><span class="nm">Educação</span><span class="trilho"><i style="width: 100%"></i></span><span class="num">700</span></li>
+                      <li><span class="nm">Saúde</span><span class="trilho"><i style="width: 26.6%"></i></span><span class="num">186</span></li>
+                      <li><span class="nm">Assistência Social</span><span class="trilho"><i style="width: 7.6%"></i></span><span class="num">53</span></li>
+                      <li><span class="nm">Administração</span><span class="trilho"><i style="width: 6.1%"></i></span><span class="num">43</span></li>
+                      <li><span class="nm">Infraestrutura</span><span class="trilho"><i style="width: 3.9%"></i></span><span class="num">27</span></li>
+                      <li><span class="nm">Turismo e Cultura</span><span class="trilho"><i style="width: 2.9%"></i></span><span class="num">20</span></li>
+                      <li><span class="nm">Fazenda</span><span class="trilho"><i style="width: 2%"></i></span><span class="num">14</span></li>
+                    </ul>
+                    <p style="font-size: 9.5px; color: var(--texto-sec); margin: 8px 0 0">
+                      Quantidade absoluta na regra em foco.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================= QUADRO ================= -->
+            <section class="painel" id="quadro">
+              <div class="dupla">
+                <div class="card">
+                  <div class="card-h">
+                    <div>
+                      <h2>Vínculos por secretaria</h2>
+                      <p>Seis maiores + demais. Clique na legenda para abrir a secretaria.</p>
+                    </div>
+                  </div>
+                  <div class="card-b">
+                    <div class="donut-wrap">
+                      <div class="donut" style="background: conic-gradient(#1351b4 0 57.5%, #e0731f 57.5% 79.1%, #2a9d8f 79.1% 84.4%, #8e4ec6 84.4% 87.9%, #c23b5e 87.9% 90.3%, #b7791f 90.3% 92.6%, #7a8699 92.6% 100%)">
+                        <div class="centro"><small>Vínculos</small><b>2.463</b></div>
+                      </div>
+                      <ul class="legend">
+                        <li><i style="background: #1351b4"></i><span class="nm">Educação</span><span class="vl">1.416</span><span class="pc">57,5%</span></li>
+                        <li><i style="background: #e0731f"></i><span class="nm">Saúde</span><span class="vl">532</span><span class="pc">21,6%</span></li>
+                        <li><i style="background: #2a9d8f"></i><span class="nm">Assistência Social</span><span class="vl">130</span><span class="pc">5,3%</span></li>
+                        <li><i style="background: #8e4ec6"></i><span class="nm">Administração</span><span class="vl">85</span><span class="pc">3,5%</span></li>
+                        <li><i style="background: #c23b5e"></i><span class="nm">Gabinete</span><span class="vl">60</span><span class="pc">2,4%</span></li>
+                        <li><i style="background: #b7791f"></i><span class="nm">Fazenda</span><span class="vl">56</span><span class="pc">2,3%</span></li>
+                        <li><i style="background: #7a8699"></i><span class="nm">Demais 8 secretarias</span><span class="vl">184</span><span class="pc">7,5%</span></li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-h">
+                    <div>
+                      <h2>Onde estão os servidores</h2>
+                      <p>Locais com 3 ou mais vínculos na seleção.</p>
+                    </div>
+                  </div>
+                  <div class="card-b">
+                    <div class="donut-wrap">
+                      <div class="donut" style="background: conic-gradient(#1351b4 0 4.5%, #e0731f 4.5% 8.3%, #2a9d8f 8.3% 11.8%, #8e4ec6 11.8% 15.1%, #c23b5e 15.1% 18.2%, #b9470e 18.2% 21.3%, #7a8699 21.3% 100%)">
+                        <div class="centro"><small>Locais</small><b>77</b></div>
+                      </div>
+                      <ul class="legend">
+                        <li><i style="background: #1351b4"></i><span class="nm">UPA</span><span class="vl">76</span><span class="pc">4,5%</span></li>
+                        <li><i style="background: #e0731f"></i><span class="nm">EM Dom Maximo Biennes</span><span class="vl">65</span><span class="pc">3,8%</span></li>
+                        <li><i style="background: #2a9d8f"></i><span class="nm">EM Brincando e Aprendendo</span><span class="vl">60</span><span class="pc">3,5%</span></li>
+                        <li><i style="background: #8e4ec6"></i><span class="nm">EM Fazendo Arte</span><span class="vl">57</span><span class="pc">3,3%</span></li>
+                        <li><i style="background: #c23b5e"></i><span class="nm">CAIC – Educação Infantil</span><span class="vl">53</span><span class="pc">3,1%</span></li>
+                        <li><i style="background: #b9470e"></i><span class="nm">Local não identificado</span><span class="vl">53</span><span class="pc">3,1%</span></li>
+                        <li><i style="background: #7a8699"></i><span class="nm">Demais 71 locais</span><span class="vl">1.339</span><span class="pc">78,6%</span></li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-h">
+                    <div>
+                      <h2>Principais cargos</h2>
+                      <p>Até oito cargos com 5 ou mais vínculos na seleção.</p>
+                    </div>
+                  </div>
+                  <div class="card-b">
+                    <ul class="cargos">
+                      <li><span class="nm">Prof. Pedagogia (30h)</span><span class="trilho"><i style="width: 100%"></i></span><span class="num">658</span></li>
+                      <li><span class="nm">Aux. Desenv. Infantil</span><span class="trilho"><i style="width: 55.3%"></i></span><span class="num">364</span></li>
+                      <li><span class="nm">Aux. Serviços Gerais</span><span class="trilho"><i style="width: 35.1%"></i></span><span class="num">231</span></li>
+                      <li><span class="nm">Guarda Mun. Patrimonial</span><span class="trilho"><i style="width: 28.4%"></i></span><span class="num">187</span></li>
+                      <li><span class="nm">Assistente Administrativo</span><span class="trilho"><i style="width: 21.9%"></i></span><span class="num">144</span></li>
+                      <li><span class="nm">Técnico em Enfermagem</span><span class="trilho"><i style="width: 14.4%"></i></span><span class="num">95</span></li>
+                      <li><span class="nm">Enfermeiro(a)</span><span class="trilho"><i style="width: 8.4%"></i></span><span class="num">55</span></li>
+                      <li><span class="nm">Agente Comunitário de Saúde</span><span class="trilho"><i style="width: 5.6%"></i></span><span class="num">37</span></li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-h">
+                    <div>
+                      <h2>Tipo de vínculo (Prefeitura)</h2>
+                      <p>Quadro fixo, independente da secretaria selecionada.</p>
+                    </div>
+                  </div>
+                  <div class="card-b">
+                    <div class="donut-wrap">
+                      <div class="donut" style="width: 118px; height: 118px; background: conic-gradient(#1351b4 0 67%, #e0731f 67% 91.8%, #2a9d8f 91.8% 94.6%, #8e4ec6 94.6% 97.2%, #c23b5e 97.2% 99.3%, #b7791f 99.3% 100%)">
+                        <div class="centro"><small>Vínculos</small><b>2.463</b></div>
+                      </div>
+                      <ul class="legend">
+                        <li><i style="background: #1351b4"></i><span class="nm">Efetivo</span><span class="vl">1.650</span><span class="pc">67,0%</span></li>
+                        <li><i style="background: #e0731f"></i><span class="nm">Contratado</span><span class="vl">610</span><span class="pc">24,8%</span></li>
+                        <li><i style="background: #2a9d8f"></i><span class="nm">Estatutário – agentes</span><span class="vl">70</span><span class="pc">2,8%</span></li>
+                        <li><i style="background: #8e4ec6"></i><span class="nm">Comissionado</span><span class="vl">65</span><span class="pc">2,6%</span></li>
+                        <li><i style="background: #c23b5e"></i><span class="nm">Estagiário</span><span class="vl">52</span><span class="pc">2,1%</span></li>
+                        <li><i style="background: #b7791f"></i><span class="nm">Outros</span><span class="vl">16</span><span class="pc">0,6%</span></li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================= QUALIDADE ================= -->
+            <section class="painel" id="qualidade">
+              <div class="card">
+                <div class="card-h">
+                  <div>
+                    <h2>Inconsistências por categoria</h2>
+                    <p>Cada vínculo é contado uma vez por regra; um vínculo pode aparecer em mais de uma categoria.</p>
+                  </div>
+                </div>
+                <div class="card-b">
+                  <div class="cats">
+                    <div class="cat">
+                      <span class="bar" style="background: #1351b4"></span>
+                      <p class="big" style="color: #1351b4">1.212</p>
+                      <p class="lb">Dependentes</p>
+                      <p class="dt">IRRF idade · salário-família · CPF · nascimento</p>
+                    </div>
+                    <div class="cat">
+                      <span class="bar" style="background: #b42318"></span>
+                      <p class="big" style="color: #b42318">1.083</p>
+                      <p class="lb">Documentação</p>
+                      <p class="dt">Certidão incompleta</p>
+                    </div>
+                    <div class="cat">
+                      <span class="bar" style="background: #2a9d8f"></span>
+                      <p class="big" style="color: #2a9d8f">279</p>
+                      <p class="lb">Contato</p>
+                      <p class="dt">Servidor sem e-mail ou telefone</p>
+                    </div>
+                    <div class="cat">
+                      <span class="bar" style="background: #b7791f"></span>
+                      <p class="big" style="color: #b7791f">106</p>
+                      <p class="lb">Lotação</p>
+                      <p class="dt">Subdivisão errada</p>
+                    </div>
+                    <div class="cat">
+                      <span class="bar" style="background: #8e4ec6"></span>
+                      <p class="big" style="color: #8e4ec6">1</p>
+                      <p class="lb">Servidor</p>
+                      <p class="dt">PIS ausente ou fictício</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card" style="margin-top: 10px">
+                <div class="card-h">
+                  <div>
+                    <h2>Faixa etária dos dependentes em desconformidade</h2>
+                    <p>Faixas de 21-23 anos em diante aparecem em laranja por exigirem comprovação.</p>
+                  </div>
+                </div>
+                <div class="card-b">
+                  <div class="faixas">
+                    <div class="faixa"><div class="col" style="height: 22%"></div><span>0-13</span></div>
+                    <div class="faixa"><div class="col" style="height: 30%"></div><span>14-17</span></div>
+                    <div class="faixa"><div class="col" style="height: 26%"></div><span>18-20</span></div>
+                    <div class="faixa lar"><div class="col" style="height: 34%"></div><span>21-23</span></div>
+                    <div class="faixa lar"><div class="col" style="height: 40%"></div><span>24-29</span></div>
+                    <div class="faixa lar"><div class="col" style="height: 32%"></div><span>30-39</span></div>
+                    <div class="faixa lar"><div class="col" style="height: 24%"></div><span>40+</span></div>
+                    <div class="faixa"><div class="col" style="height: 16%"></div><span>Sem data</span></div>
+                  </div>
+                  <p class="aviso">Aguardando a consulta <b>03_faixa_dependentes.sql</b> — sem dados, as colunas acima são apenas a estrutura do gráfico.</p>
+                </div>
+              </div>
+
+              <div class="card" style="margin-top: 10px">
+                <div class="card-h">
+                  <div>
+                    <h2>Alertas de cadastro do SIP</h2>
+                    <p>Situações estruturais que afetam a leitura dos indicadores.</p>
+                  </div>
+                </div>
+                <div class="card-b">
+                  <div class="alertas">
+                    <div class="alerta"><p class="n">3</p><p class="t">subdivisões com a secretaria dona errada</p><p class="d">007001 → 000008, 008001 → 000009, 002001 → 000003. Afeta 106 vínculos.</p></div>
+                    <div class="alerta"><p class="n">20</p><p class="t">dependentes com IRRF em dois registros ativos</p><p class="d">Em ao menos 2 casos é a mesma pessoa com dois vínculos.</p></div>
+                    <div class="alerta"><p class="n">11</p><p class="t">pessoas com dois vínculos ativos</p><p class="d">Mesmo CPF em dois registros.</p></div>
+                    <div class="alerta"><p class="n">53+</p><p class="t">vínculos em "Local não identificado"</p><p class="d">46 na Saúde e 7 na Fazenda (código 000000).</p></div>
+                    <div class="alerta"><p class="n">5</p><p class="t">dependentes marcados como universitários</p><p class="d">Acima de 21 com IRRF precisa comprovar matrícula.</p></div>
+                    <div class="alerta"><p class="n">4</p><p class="t">vínculos sem status no eSocial</p><p class="d">Os outros 2.459 estão no status 2.</p></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================= TABELA ================= -->
+            <section class="painel" id="tabela">
+              <div class="tbl-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Secretaria</th>
+                      <th>Vínculos</th>
+                      <th>Dependentes</th>
+                      <th>IRRF idade</th>
+                      <th>Sal.-família</th>
+                      <th>Dep. sem CPF</th>
+                      <th class="crit">Certidão</th>
+                      <th>Sem e-mail</th>
+                      <th>Conf. P5</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Educação</td><td>1.416</td><td>1.937</td><td>198</td><td>179</td><td>141</td><td class="crit">700</td><td>77</td><td>44,2%</td><td class="abrir">Abrir</td></tr>
+                    <tr><td>Saúde</td><td>532</td><td>594</td><td>127</td><td>143</td><td>100</td><td class="crit">186</td><td>83</td><td>48,8%</td><td class="abrir">Abrir</td></tr>
+                    <tr><td>Assistência Social</td><td>130</td><td>159</td><td>33</td><td>30</td><td>19</td><td class="crit">53</td><td>17</td><td>46,1%</td><td class="abrir">Abrir</td></tr>
+                    <tr><td>Administração</td><td>85</td><td>131</td><td>21</td><td>22</td><td>16</td><td class="crit">43</td><td>12</td><td>36,4%</td><td class="abrir">Abrir</td></tr>
+                    <tr><td>Gabinete</td><td>60</td><td>36</td><td>3</td><td>4</td><td>3</td><td class="crit">12</td><td>2</td><td>76,6%</td><td class="abrir">Abrir</td></tr>
+                    <tr><td>Fazenda</td><td>56</td><td>52</td><td>11</td><td>12</td><td>2</td><td class="crit">14</td><td>0</td><td>55,3%</td><td class="abrir">Abrir</td></tr>
+                    <tr><td>Infraestrutura<span class="tag-lot">subdivisão errada</span></td><td>55</td><td>68</td><td>17</td><td>20</td><td>12</td><td class="crit">27</td><td>5</td><td>—</td><td class="abrir">Abrir</td></tr>
+                    <tr><td>Turismo e Cultura<span class="tag-lot">subdivisão errada</span></td><td>36</td><td>65</td><td>12</td><td>10</td><td>8</td><td class="crit">20</td><td>6</td><td>—</td><td class="abrir">Abrir</td></tr>
+                    <tr><td>Meio Ambiente</td><td>19</td><td>16</td><td>4</td><td>5</td><td>1</td><td class="crit">4</td><td>3</td><td>68,4%</td><td class="abrir">Abrir</td></tr>
+                    <tr><td>Esporte e Lazer</td><td>18</td><td>30</td><td>7</td><td>7</td><td>6</td><td class="crit">6</td><td>8</td><td>38,8%</td><td class="abrir">Abrir</td></tr>
+                    <tr><td>Finanças</td><td>17</td><td>19</td><td>6</td><td>5</td><td>3</td><td class="crit">8</td><td>2</td><td>47,0%</td><td class="abrir">Abrir</td></tr>
+                    <tr><td>Assuntos Estratégicos<span class="tag-lot">subdivisão errada</span></td><td>15</td><td>18</td><td>5</td><td>3</td><td>4</td><td class="crit">5</td><td>0</td><td>—</td><td class="abrir">Abrir</td></tr>
+                    <tr><td>Agricultura</td><td>12</td><td>14</td><td>2</td><td>2</td><td>1</td><td class="crit">3</td><td>1</td><td>58,3%</td><td class="abrir">Abrir</td></tr>
+                    <tr><td>Planejamento</td><td>12</td><td>7</td><td>1</td><td>1</td><td>1</td><td class="crit">2</td><td>2</td><td>83,3%</td><td class="abrir">Abrir</td></tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>Total (14 secretarias)</td>
+                      <td>2.463</td>
+                      <td>3.146</td>
+                      <td>447</td>
+                      <td>443</td>
+                      <td>317</td>
+                      <td style="color: #b42318">1.083</td>
+                      <td>218</td>
+                      <td></td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </section>
+
+            <p class="fonte">
+              Fonte: 02_painel_real.sql sobre o SIP_ANALISE_2 (empresa 001, situação 1 e 3). Cada regra
+              conta o vínculo uma vez; um vínculo pode aparecer em mais de uma regra. Nenhum dado
+              pessoal nesta página. Pré-Censo · SIP · atualizado em 17/10/2026 18:40.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.querySelectorAll(".tab").forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          document.querySelectorAll(".tab").forEach(function (t) {
+            t.classList.remove("on");
+          });
+          document.querySelectorAll(".painel").forEach(function (p) {
+            p.classList.remove("on");
+          });
+          tab.classList.add("on");
+          document.getElementById(tab.dataset.tab).classList.add("on");
+        });
+      });
+
+      // recolher / expandir o menu do produto
+      (function () {
+        var app = document.querySelector(".app");
+        var trigger = document.getElementById("nav-trigger");
+        trigger.addEventListener("click", function () {
+          var recolhido = app.classList.toggle("min");
+          trigger.textContent = recolhido ? "»" : "«";
+          trigger.title = recolhido ? "Expandir menu" : "Recolher menu";
+          trigger.setAttribute("aria-label", trigger.title);
+        });
+      })();
+    </script>
+  </body>
+</html>

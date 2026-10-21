@@ -1,0 +1,58 @@
+[
+  {
+    "divisao": "SECRETARIA MUNICIPAL DE EDUCACAO",
+    "vinculos": 1416,
+    "com_erro": 164,
+    "com_alerta": 175,
+    "sem_pendencia": 1077
+  },
+  {
+    "divisao": "SECRETARIA MUNICIPAL DE SAUDE",
+    "vinculos": 386,
+    "com_erro": 131,
+    "com_alerta": 84,
+    "sem_pendencia": 171
+  },
+  {
+    "divisao": "SECRETARIA MUNICIPAL DE ADMINISTRACAO",
+    "vinculos": 198,
+    "com_erro": 84,
+    "com_alerta": 61,
+    "sem_pendencia": 53
+  },
+  {
+    "divisao": "SECRETARIA MUNICIPAL DE OBRAS",
+    "vinculos": 142,
+    "com_erro": 76,
+    "com_alerta": 48,
+    "sem_pendencia": 18
+  },
+  {
+    "divisao": "FUNDO MUNICIPAL DE SAUDE",
+    "vinculos": 121,
+    "com_erro": 62,
+    "com_alerta": 40,
+    "sem_pendencia": 19
+  },
+  {
+    "divisao": "SECRETARIA MUNICIPAL DE ASSISTENCIA SOCIAL",
+    "vinculos": 96,
+    "com_erro": 54,
+    "com_alerta": 33,
+    "sem_pendencia": 9
+  },
+  {
+    "divisao": "SECRETARIA MUNICIPAL DE MEIO AMBIENTE",
+    "vinculos": 58,
+    "com_erro": 26,
+    "com_alerta": 18,
+    "sem_pendencia": 14
+  },
+  {
+    "divisao": "SECRETARIA MUNICIPAL DE CULTURA",
+    "vinculos": 46,
+    "com_erro": 13,
+    "com_alerta": 7,
+    "sem_pendencia": 26
+  }
+]

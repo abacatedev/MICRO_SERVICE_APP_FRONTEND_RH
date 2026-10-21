@@ -1,0 +1,52 @@
+{
+  "gerado_em": "2026-10-20T02:26:36.859829+00:00",
+  "universo": {
+    "empresa": "001",
+    "situacoes": ["1", "3"],
+    "vinculos": 2463,
+    "dependentes": 3150
+  },
+  "resumo": { "vinculos": 2463, "com_erro": 610, "com_alerta": 520, "sem_pendencia": 1333 },
+  "regras": [
+    {
+      "codigo": "D12",
+      "titulo": "Certidão ausente",
+      "tipo": "erro",
+      "alvo": "dependente",
+      "descricao": "Dependente sem registro de certidão.",
+      "orientacao": "Solicitar a certidão ao servidor.",
+      "servidores": 610,
+      "ocorrencias": 640
+    },
+    {
+      "codigo": "D20",
+      "titulo": "Dependente com CPF inválido",
+      "tipo": "erro",
+      "alvo": "dependente",
+      "descricao": "CPF do dependente não passa na validação.",
+      "orientacao": "Conferir o CPF no cartão.",
+      "servidores": 27,
+      "ocorrencias": 27
+    },
+    {
+      "codigo": "S07",
+      "titulo": "Servidor sem PIS",
+      "tipo": "alerta",
+      "alvo": "servidor",
+      "descricao": "PIS ausente ou fictício.",
+      "orientacao": "Atualizar o cadastro do servidor.",
+      "servidores": 9,
+      "ocorrencias": 9
+    },
+    {
+      "codigo": "S09",
+      "titulo": "Regra sem ocorrência",
+      "tipo": "conferencia",
+      "alvo": "servidor",
+      "descricao": "Nenhum caso encontrado.",
+      "orientacao": "—",
+      "servidores": 0,
+      "ocorrencias": 0
+    }
+  ]
+}

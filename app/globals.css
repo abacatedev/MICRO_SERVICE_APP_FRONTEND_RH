@@ -1,0 +1,197 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* IBM Plex Sans no texto; IBM Plex Sans Condensed nos números grandes. */
+  --font-sans: var(--font-plex), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-numeric: var(--font-plex-cond), var(--font-plex), ui-sans-serif, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-critical-soft: var(--critical-soft);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/*
+ * Paleta institucional (Padrão Digital de Governo).
+ * Fonte: "Raio-X das Secretarias — Guia da interface visual", 20/10/2026.
+ */
+:root {
+  --radius: 0.625rem; /* 10 px */
+
+  --background: #f3f6fa;
+  --foreground: #14213d;
+
+  --card: #ffffff;
+  --card-foreground: #14213d;
+
+  --popover: #ffffff;
+  --popover-foreground: #14213d;
+
+  --primary: #1351b4;
+  --primary-foreground: #ffffff;
+
+  --secondary: #0c2350;
+  --secondary-foreground: #ffffff;
+
+  --muted: #eef2f7;
+  --muted-foreground: #56637a;
+
+  --accent: #dbe8fb;
+  --accent-foreground: #0c2350;
+
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --success: #0f9d76;
+  --warning: #b9470e;
+  --critical-soft: #fdecea;
+
+  --border: #dce3ec;
+  --input: #c9d3e1;
+  --ring: #1351b4;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #56637a;
+  --sidebar-border: #dce3ec;
+  --sidebar-accent: #dbe8fb;
+
+  --chart-1: #1351b4;
+  --chart-2: #e0731f;
+  --chart-3: #2a9d8f;
+  --chart-4: #8e4ec6;
+  --chart-5: #c23b5e;
+  --chart-6: #b7791f;
+  --chart-7: #7a8699;
+}
+
+/*
+ * Tema escuro: o guia define só o claro. Esta versão desloca a mesma
+ * identidade (azul-marinho + azul gov.br) para fundo escuro, sem inventar
+ * uma segunda linguagem visual.
+ */
+.dark {
+  --background: #0b1220;
+  --foreground: #e6edf7;
+
+  --card: #101a2b;
+  --card-foreground: #e6edf7;
+
+  --popover: #121d30;
+  --popover-foreground: #e6edf7;
+
+  --primary: #4c8df6;
+  --primary-foreground: #06122a;
+
+  --secondary: #1b2a44;
+  --secondary-foreground: #e6edf7;
+
+  --muted: #17233a;
+  --muted-foreground: #94a6bf;
+
+  --accent: #1b2a44;
+  --accent-foreground: #cfe0fb;
+
+  --destructive: #f2776a;
+  --destructive-foreground: #2a0705;
+  --success: #34d399;
+  --warning: #f08a4b;
+  --critical-soft: #2c1512;
+
+  --border: #22314b;
+  --input: #22314b;
+  --ring: #4c8df6;
+
+  --sidebar: #0d1626;
+  --sidebar-foreground: #9fb0c9;
+  --sidebar-border: #1b2a44;
+  --sidebar-accent: #1b2a44;
+
+  --chart-1: #6aa2f8;
+  --chart-2: #f0904f;
+  --chart-3: #4bbfae;
+  --chart-4: #a97ad9;
+  --chart-5: #d96b88;
+  --chart-6: #cfa14a;
+  --chart-7: #8b97a9;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Números alinhados em colunas, como pede o guia. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  /* Número grande dos cards e dos alertas: Plex Condensed, 600. */
+  .num-cond {
+    font-family: var(--font-plex-cond), var(--font-plex), ui-sans-serif, sans-serif;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* barra de rolagem discreta */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 9999px;
+  }
+}

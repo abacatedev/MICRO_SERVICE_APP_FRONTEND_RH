@@ -1,0 +1,34 @@
+{
+  "gerado_em": "2026-10-20T02:26:36.859829+00:00",
+  "minimos": { "local": 3, "cargo": 5 },
+  "divisoes": {
+    "000006": {
+      "locais": [
+        { "nome": "ESCOLA MUNICIPAL CENTRAL", "vinculos": 120 },
+        { "nome": "Local não identificado", "vinculos": 40 }
+      ],
+      "cargos": [
+        { "nome": "PROFESSOR", "vinculos": 300 },
+        { "nome": "AUXILIAR DE SERVICOS ESCOLARES", "vinculos": 80 }
+      ],
+      "tipos_vinculo": [
+        { "nome": "Estatutário", "vinculos": 1200 },
+        { "nome": "Comissionado", "vinculos": 216 }
+      ]
+    },
+    "000005": {
+      "locais": [
+        { "nome": "ESCOLA MUNICIPAL CENTRAL", "vinculos": 15 },
+        { "nome": "UNIDADE BASICA DE SAUDE CENTRO", "vinculos": 90 }
+      ],
+      "cargos": [
+        { "nome": "PROFESSOR", "vinculos": 12 },
+        { "nome": "ENFERMEIRO", "vinculos": 60 }
+      ],
+      "tipos_vinculo": [
+        { "nome": "Estatutário", "vinculos": 500 },
+        { "nome": "Comissionado", "vinculos": 32 }
+      ]
+    }
+  }
+}
