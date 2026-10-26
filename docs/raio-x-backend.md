@@ -41,12 +41,12 @@ vira um `useQuery`.
 | Rota | Hook | Uso |
 |---|---|---|
 | `/rh/me` | `useSessao` | valida a sessão cedo; 401 redireciona |
-| `/rh/diagnostico/por-divisao/regras?atualizar=false` | `useRaioXRegras` | cards, filtro, aba Regra em foco, tabela, totais |
-| `/rh/diagnostico/por-divisao/perfil` | `useRaioXPerfil` | aba Quadro: locais, cargos, tipos de vínculo |
-| `/rh/diagnostico` | `useDiagnosticoPainel` | aba Qualidade: regras fora dos sete cartões |
+| `/rh/diagnostico/por-divisao/regras?atualizar=false` | `useRaioXRegras` | cards, filtro, aba Pendência, Comparativo, totais |
+| `/rh/diagnostico/por-divisao/perfil` | `useRaioXPerfil` | aba Panorama: locais, cargos, tipos de vínculo |
+| `/rh/diagnostico` | `useDiagnosticoPainel` | aba Inconsistências: regras fora dos sete cartões |
 
-`atualizar=true` é usado pelo botão **Atualizar**, no rodapé da tela (à direita da nota de
-fonte). Ele refaz as três consultas e mostra "Atualizando…" enquanto o backend recalcula.
+`atualizar=true` é usado pelo botão **Atualizar** da topbar (ícone à esquerda do sino). Ele refaz
+as três consultas e gira o ícone enquanto o backend recalcula.
 
 ## 3. Regras de dados respeitadas
 
@@ -91,8 +91,8 @@ As fixtures estão em `lib/raio-x/__fixtures__/` (`raio-x-regras.json`, `raio-x-
 | 1. Sessão | ✅ sem cookie as quatro rotas dão 401; após o login do Google a tela carrega |
 | 2. Rede | ✅ chamadas em `/api/rh/...` (mesma origem), sem erro de CORS e sem chamada direta à porta 8000 |
 | 3. Números com "Toda a Prefeitura" | ✅ cards `394 / 439 / 318 / 6 / 610 / 265 / 466` e `2.463` vínculos no seletor |
-| 4. Educação selecionada | ✅ cards `164 / 175 / 142 / 3 / 374 / 101 / 158`, `1.416` vínculos, tabela com `1.941` dependentes e `62,9%` |
-| 5. Interação nas abas | ✅ Regra em foco, Quadro, Qualidade e Tabela com dados da API, sem resíduo de mock |
+| 4. Educação selecionada | ✅ cards `164 / 175 / 142 / 3 / 374 / 101 / 158`, `1.416` vínculos, tabela com `1.941` dependentes e `62,9%` (a tabela saiu da tela em 25/10/2026; o passo fica como registro) |
+| 5. Interação nas abas | ✅ Panorama, Inconsistências, Comparativo e Pendência com dados da API, sem resíduo de mock |
 | 6. Botão Atualizar | ⏳ pendente |
 | 7. Erro com o backend parado | ⏳ pendente |
 | 8. Sessão expirada | ⏳ pendente |
@@ -104,10 +104,13 @@ produção é uma chamada só.
 
 | Item na tela | Situação |
 |---|---|
-| **Faixa etária dos dependentes** (aba Qualidade) | Sem endpoint. A tela mostra a estrutura com um aviso de "aguardando `03_faixa_dependentes.sql`". Precisa de contagem por faixa e por divisão. |
+| **Faixa etária dos dependentes** (aba Inconsistências) | ✅ Ligada em 22/10/2026 a `GET /rh/indicadores/faixa-dependentes` (permissão `rh:diagnostico:painel`). Filtros `divisao`/`subdivisao`/`vinculo` — o front hoje só tem o primeiro. `faixas` vem sempre com 8 itens na ordem do backend. |
 | **Subdivisão errada** (coluna da tabela e categoria "Lotação") | `LinhaDivisao` não tem esse campo. Hoje fica `0` e o selo "subdivisão errada" nunca aparece. Precisa de `lot_setor` por divisão. |
+| **Dependentes por regra** (cards da sidebar) | `RegraDoPainel.servidores` conta **vínculos**, não dependentes: "Dependente sem CPF · 318" são 318 vínculos com um dependente sem CPF. Falta um campo `dependentes: number` em `RegraDoPainel` (mesma rota, sem endpoint novo) para responder "quantos dependentes estão sem CPF". |
+| **Matriz secretaria × faixa** (aba Inconsistências) | `faixa-dependentes` aceita `divisao`, mas uma divisão por chamada — 14 requisições para a matriz. Falta `?por=divisao`, devolvendo `divisoes: [{ divisao, ...totais, faixas: [...] }]` no mesmo formato de hoje. |
+| **eSocial** | Sem fonte no backend. A única menção no projeto é texto fixo em `ALERTAS` (`lib/raio-x/mock.ts`), que só aparece com `NEXT_PUBLIC_RAIO_X_MOCK=true`. Antes de virar tela, definir se é status do vínculo (S-1200/S-2300) ou conferência do dependente — são endpoints diferentes. |
 | **PIS ausente ou fictício** (categoria "Servidor") | Não há campo no payload. A categoria fica `0`. Precisa de contagem por divisão. |
-| **Conformidade P5** (coluna "Conformidade P5") | A API entrega `conformidade` (% sem pendência), que é o que a coluna mostra. Se P5 for outro indicador, falta o campo. |
+| **"% conforme"** | A API entrega `conformidade` (% sem pendência). O campo é derivado no adaptador e continua no contrato, mas a coluna que o mostrava saiu da tela em 25/10/2026 junto com a tabela do Comparativo — hoje **nenhuma tela o exibe**. Se "conformidade" for outro indicador no backend, o número precisa de um campo próprio antes de voltar. |
 | **`com_erro` / `com_alerta` / `sem_pendencia`** | Vêm na API e ainda não são exibidos (não há espaço no layout atual). Candidatos naturais a uma futura faixa de resumo. |
 | **Lista nominal por secretaria** | O endpoint `/rh/diagnostico/{codigo}?formato=json&limite=100&pagina=1` existe, mas a tela de destino está fora do escopo. O botão "Ver lista nominal" segue desabilitado. |
-| **Cabeçalho com vínculos/dependentes** | O card de cabeçalho foi removido a pedido do usuário em 18/10. Vínculos aparecem no seletor de secretaria e na tabela; dependentes na tabela e no rodapé de totais. |
+| **Cabeçalho com vínculos/dependentes** | O card de cabeçalho foi removido a pedido do usuário em 18/10. Vínculos aparecem no seletor de secretaria (e, por secretaria, no tooltip do gráfico de composição); dependentes não têm mais onde aparecer desde que a tabela saiu da tela em 25/10/2026 — o dado continua no payload. |

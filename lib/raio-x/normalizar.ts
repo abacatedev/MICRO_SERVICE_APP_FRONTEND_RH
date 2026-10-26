@@ -126,12 +126,12 @@ function normalizarAlertas(valor: unknown): Alerta[] {
     .map((item): Alerta => {
       const obj = comoObjeto(item) ?? {};
       return {
-        n: texto(primeiro(obj, "n", "numero", "valor", "quantidade")),
         t: texto(primeiro(obj, "t", "titulo", "texto", "label")),
         d: texto(primeiro(obj, "d", "descricao", "detalhe")),
+        valor: numero(primeiro(obj, "valor", "n", "numero", "quantidade", "servidores")),
       };
     })
-    .filter((alerta) => alerta.t !== "" || alerta.n !== "");
+    .filter((alerta) => alerta.t !== "");
 }
 
 /** Alguns backends embrulham o payload em `{ data: ... }`. */

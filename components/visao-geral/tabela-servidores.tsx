@@ -3,7 +3,6 @@
 import * as React from "react";
 import { AlertCircle, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 
-import { PALETA } from "@/lib/paleta";
 import { LIMITE_SERVIDORES, useServidores } from "@/lib/rh/api";
 import { colunasDeServidores, totalDePaginas, valorDaColuna } from "@/lib/rh/adaptadores";
 import { formatNumber } from "@/lib/utils";
@@ -50,10 +49,7 @@ export function TabelaServidores({ className }: { className?: string }) {
       className={className}
       contentClassName="px-0 pt-2 pb-0"
       footer={
-        <div
-          className="flex flex-wrap items-center justify-between gap-2 px-5 py-2.5 text-[11.5px]"
-          style={{ color: PALETA.textoSec }}
-        >
+        <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-2 px-5 py-2.5 text-[11.5px]">
           <span>
             {total === 0
               ? "Nenhum vínculo"
@@ -65,8 +61,7 @@ export function TabelaServidores({ className }: { className?: string }) {
               type="button"
               onClick={() => setPagina((p) => Math.max(1, p - 1))}
               disabled={pagina <= 1 || isLoading}
-              className="inline-flex size-7 items-center justify-center rounded-[6px] border transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-              style={{ borderColor: PALETA.borda, color: PALETA.texto }}
+              className="border-border text-foreground inline-flex size-7 items-center justify-center rounded-[6px] border transition-colors disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Página anterior"
             >
               <ChevronLeft className="size-3.5" />
@@ -78,8 +73,7 @@ export function TabelaServidores({ className }: { className?: string }) {
               type="button"
               onClick={() => setPagina((p) => Math.min(paginas, p + 1))}
               disabled={pagina >= paginas || isLoading}
-              className="inline-flex size-7 items-center justify-center rounded-[6px] border transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-              style={{ borderColor: PALETA.borda, color: PALETA.texto }}
+              className="border-border text-foreground inline-flex size-7 items-center justify-center rounded-[6px] border transition-colors disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Próxima página"
             >
               <ChevronRight className="size-3.5" />
@@ -90,12 +84,12 @@ export function TabelaServidores({ className }: { className?: string }) {
     >
       {isError ? (
         <div className="flex flex-col items-center gap-2 px-5 py-8">
-          <AlertCircle className="size-5" style={{ color: PALETA.critico }} />
-          <p className="text-[12.5px]" style={{ color: PALETA.texto }}>
+          <AlertCircle className="text-destructive size-5" />
+          <p className="text-foreground text-[12.5px]">
             Não foi possível carregar a lista de vínculos.
           </p>
           {erro && (
-            <p className="max-w-[520px] text-center text-[11px] break-words" style={{ color: PALETA.textoSec }}>
+            <p className="text-muted-foreground max-w-[520px] text-center text-[11px] break-words">
               {erro}
             </p>
           )}
@@ -111,11 +105,11 @@ export function TabelaServidores({ className }: { className?: string }) {
           ))}
         </div>
       ) : itens.length === 0 ? (
-        <p className="px-5 py-8 text-center text-[12.5px]" style={{ color: PALETA.textoSec }}>
+        <p className="text-muted-foreground px-5 py-8 text-center text-[12.5px]">
           O backend não devolveu vínculos para esta página.
         </p>
       ) : colunas.length === 0 ? (
-        <p className="px-5 py-8 text-center text-[12.5px]" style={{ color: PALETA.textoSec }}>
+        <p className="text-muted-foreground px-5 py-8 text-center text-[12.5px]">
           {formatNumber(itens.length)} vínculos em colunas que esta tela ainda não reconhece —
           ajuste `COLUNAS_PREFERIDAS` em `lib/rh/adaptadores.ts`.
         </p>

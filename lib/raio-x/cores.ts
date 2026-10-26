@@ -6,4 +6,10 @@
  * direto de `@/lib/paleta`.
  */
 
-export { PALETA as RX, CATEGORICAS, corDaFatia } from "@/lib/paleta";
+export {
+  PALETA as RX,
+  GRAFICO as GX,
+  CATEGORICAS,
+  corDaFatia,
+  corNoTema,
+} from "@/lib/paleta";

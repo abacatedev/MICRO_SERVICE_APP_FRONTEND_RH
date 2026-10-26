@@ -7,16 +7,14 @@ import { PageHeader } from "@/components/layout/page-header";
 import { SectionCard } from "@/components/section-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PALETA } from "@/lib/paleta";
 import { useVisaoGeral } from "@/lib/rh/api";
+import { useGerencial } from "@/lib/afastamentos/api";
 import {
   fmtPct,
-  formatarGeradoEm,
   funilConformidade,
   kpisDoPainel,
   pct,
   pendenciasPorTipo,
-  regrasPorOcorrencias,
   regrasPorServidores,
   situacaoPorDivisao,
 } from "@/lib/rh/adaptadores";
@@ -25,24 +23,34 @@ import { ColunasDivisao } from "@/components/visao-geral/colunas-divisao";
 import { DonutTipos } from "@/components/visao-geral/donut-tipos";
 import { BarrasRegras } from "@/components/visao-geral/barras-regras";
 import { FunilConformidade } from "@/components/visao-geral/funil-conformidade";
-import { TabelaServidores } from "@/components/visao-geral/tabela-servidores";
-import { ListaOcorrencias } from "@/components/visao-geral/lista-ocorrencias";
+import { CardAfastamentosResumo } from "@/components/visao-geral/card-afastamentos-resumo";
+import { ListaPendenciasAfastamentos } from "@/components/visao-geral/lista-pendencias-afastamentos";
 
 const REGRAS_VISIVEIS = 10;
+
+/**
+ * O gráfico "Pendências por secretaria" mostra **todas** as divisões: o corte
+ * existe só como guarda-corpo, não como "top N". Antes eram 12 e as secretarias
+ * menores ficavam de fora sem aviso (22/10/2026).
+ */
+const MAX_SECRETARIAS = 24;
 
 export default function OverviewPage() {
   const { painel, divisoes, isLoading, isError, erro, status, atualizando, refetch, atualizar } =
     useVisaoGeral();
+  const gerencial = useGerencial();
 
   const kpis = React.useMemo(() => (painel ? kpisDoPainel(painel) : []), [painel]);
   const fatias = React.useMemo(() => pendenciasPorTipo(painel?.regras), [painel]);
-  const serie = React.useMemo(() => situacaoPorDivisao(divisoes, 12), [divisoes]);
+  const serie = React.useMemo(
+    () => situacaoPorDivisao(divisoes, MAX_SECRETARIAS),
+    [divisoes],
+  );
   const funil = React.useMemo(() => (painel ? funilConformidade(painel) : []), [painel]);
   const topVinculos = React.useMemo(
     () => regrasPorServidores(painel?.regras, REGRAS_VISIVEIS),
     [painel],
   );
-  const topOcorrencias = React.useMemo(() => regrasPorOcorrencias(painel?.regras, 6), [painel]);
 
   const resumo = painel?.resumo;
   const universo = painel?.universo;
@@ -67,21 +75,15 @@ export default function OverviewPage() {
       />
 
       {isError ? (
-        <div
-          className="flex flex-col items-center gap-3 rounded-[10px] border bg-white px-4 py-12"
-          style={{ borderColor: PALETA.borda }}
-        >
-          <AlertCircle className="size-6" style={{ color: PALETA.critico }} />
-          <p className="text-[13px]" style={{ color: PALETA.texto }}>
+        <div className="border-border bg-card flex flex-col items-center gap-3 rounded-[10px] border px-4 py-12">
+          <AlertCircle className="text-destructive size-6" />
+          <p className="text-foreground text-[13px]">
             {status === 403
               ? "Seu perfil não tem acesso ao painel do diagnóstico."
               : "Não foi possível carregar o diagnóstico."}
           </p>
           {erro && status !== 403 && (
-            <p
-              className="max-w-[620px] rounded-md px-3 py-2 text-center font-mono text-[11.5px] leading-relaxed break-words"
-              style={{ color: PALETA.textoSec, backgroundColor: PALETA.fundo }}
-            >
+            <p className="bg-muted text-muted-foreground max-w-[620px] rounded-md px-3 py-2 text-center font-mono text-[11.5px] leading-relaxed break-words">
               {erro}
             </p>
           )}
@@ -113,7 +115,7 @@ export default function OverviewPage() {
           <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-3">
             <SectionCard
               title="Pendências por secretaria"
-              description="Vínculos com erro ou alerta · das piores para as melhores"
+              description="Vínculos com erro ou alerta"
               className="xl:col-span-2"
             >
               <ColunasDivisao serie={serie} />
@@ -149,29 +151,11 @@ export default function OverviewPage() {
           </div>
 
           <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-3">
-            <TabelaServidores className="xl:col-span-2" />
-
-            <SectionCard
-              title="Regras com mais ocorrências"
-              description="Uma regra de dependente conta por dependente"
-            >
-              <ListaOcorrencias regras={topOcorrencias} />
-            </SectionCard>
+            <div className="xl:col-span-2">
+              <CardAfastamentosResumo dados={gerencial.data} />
+            </div>
+            <ListaPendenciasAfastamentos dados={gerencial.data} />
           </div>
-
-          <p className="mt-4 text-[11px] leading-relaxed" style={{ color: PALETA.textoSec }}>
-            Fonte: painel de diagnóstico do RH
-            {universo
-              ? ` (empresa ${universo.empresa}${
-                  universo.situacoes?.length
-                    ? `, situações ${universo.situacoes.join(" e ")}`
-                    : ""
-                }).`
-              : "."}{" "}
-            Cada regra conta o vínculo uma vez; um vínculo pode aparecer em mais de uma regra, por
-            isso a soma por tipo não fecha com o total de vínculos.
-            {painel.gerado_em ? ` Atualizado em ${formatarGeradoEm(painel.gerado_em)}.` : ""}
-          </p>
         </>
       )}
     </>

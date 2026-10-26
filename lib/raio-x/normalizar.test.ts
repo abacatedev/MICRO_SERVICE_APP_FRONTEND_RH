@@ -101,9 +101,9 @@ describe("normalizarRaioX", () => {
     expect(dados.pisFicticio).toEqual({ "000006": 9 });
     expect(dados.faixaDependentes).toEqual({ "0-13": 500, "14-17": 220 });
     expect(dados.alertas[0]).toEqual({
-      n: "53+",
       t: "certidão incompleta",
       d: "Sem tipo de certidão.",
+      valor: 53,
     });
     expect(dados.atualizadoEm).toBe("17/10/2026 18:40");
   });

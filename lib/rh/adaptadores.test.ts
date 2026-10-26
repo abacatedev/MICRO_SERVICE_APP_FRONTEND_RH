@@ -135,6 +135,43 @@ describe("nomeCurtoDivisao", () => {
     expect(nomeCurtoDivisao("SECRETARIA MUNICIPAL DE MEIO AMBIENTE")).toBe("Meio Ambiente");
     expect(nomeCurtoDivisao("SECRETARIA DE EDUCACAO E CULTURA")).toBe("Educação e Cultura");
   });
+
+  // O SIP também grava o prefixo abreviado; antes ele passava inteiro para o eixo.
+  it("remove o prefixo abreviado", () => {
+    expect(nomeCurtoDivisao("SECRET. MUNICIPAL DE FAZENDA")).toBe("Fazenda");
+    expect(nomeCurtoDivisao("SECR. MUN. DE FAZENDA")).toBe("Fazenda");
+  });
+
+  // "ESPECIAL" diz o tipo da secretaria, como "MUNICIPAL": o eixo fica só com o
+  // assunto. Antes o qualificador passava inteiro e o rótulo saía "Especial de
+  // Assuntos Estratégicos" (22/10/2026).
+  it("remove o qualificador ESPECIAL", () => {
+    expect(nomeCurtoDivisao("SECRETARIA ESPECIAL DE ASSUNTOS ESTRATEGICOS")).toBe(
+      "Assuntos Estratégicos",
+    );
+    expect(nomeCurtoDivisao("SECRET. ESPECIAL DE CULTURA")).toBe("Cultura");
+  });
+
+  it("usa o rótulo curto das divisões com nome composto", () => {
+    expect(
+      nomeCurtoDivisao("SECRET. MUNICIPAL DE MEIO AMBIENTE E DESENVOLVIMENTO ECONOMICO"),
+    ).toBe("Meio Ambiente");
+    // A regra é por palavras: o final do nome pode variar.
+    expect(
+      nomeCurtoDivisao("SECRETARIA MUNICIPAL DE MEIO AMBIENTE, DESENVOLVIMENTO ECONÔMICO E TURISMO"),
+    ).toBe("Meio Ambiente");
+    expect(nomeCurtoDivisao("SECRETARIA DE DESENVOLVIMENTO ECONÔMICO")).toBe(
+      "Desenvolvimento Econômico",
+    );
+    // Sem "desenvolvimento" no nome, o alias não se aplica.
+    expect(nomeCurtoDivisao("SECRETARIA MUNICIPAL DE MEIO AMBIENTE E SANEAMENTO")).toBe(
+      "Meio Ambiente e Saneamento",
+    );
+  });
+
+  it("aguenta espaço duplo no meio do nome", () => {
+    expect(nomeCurtoDivisao("SECRETARIA  MUNICIPAL  DE  SAUDE")).toBe("Saúde");
+  });
 });
 
 /* ------------------------------------------------------------------ */

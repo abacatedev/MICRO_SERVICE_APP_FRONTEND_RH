@@ -80,12 +80,47 @@ export interface CategoriaQualidade {
   detalhe: string;
   value: number;
   color: string;
+  /**
+   * `true` quando o `value` é 0 porque a API **não expõe** o dado, não porque
+   * não há ocorrência. A tela mostra "—" em vez de "0" para não inventar um zero.
+   */
+  semContagem?: boolean;
+}
+
+/**
+ * Fatia do donut "De que regra vêm os apontamentos".
+ *
+ * Herda de `Fatia` para reaproveitar o `Donut` do Quadro; `categoria` existe
+ * porque a legenda é agrupada por ela, e `detalhe` é a mesma categoria em texto
+ * para o tooltip. Os dois são preenchidos juntos em `fatiasPorRegra`.
+ */
+export interface FatiaRegra extends Fatia {
+  categoria: string;
+}
+
+/**
+ * Fatia de `fatiasPorRegra`: além do que o `Donut` precisa, sabe **de que
+ * regra** veio. É o `cod` que a legenda usa para abrir a aba Pendência, por
+ * isso aqui ele é obrigatório (na `Fatia` genérica é opcional, porque a fatia
+ * por secretaria também usa esse campo).
+ */
+export interface FatiaRegraComCod extends FatiaRegra {
+  cod: RegraId;
 }
 
 export interface Alerta {
-  n: string;
+  /** Título da regra, como a API manda. */
   t: string;
+  /** O que a regra pega, em uma frase. */
   d: string;
+  /** Contagem crua — é o que a barra desenha. `t`/`d` são texto, isto é número. */
+  valor: number;
+  /**
+   * Classificação que o backend já manda em `RegraDiagnostico.tipo`. Opcional
+   * porque nem todo fixture traz: sem ela a barra sai neutra, em vez de o front
+   * adivinhar severidade.
+   */
+  tipo?: TipoRegra;
 }
 
 export interface RaioXData {
@@ -194,4 +229,42 @@ export interface SessaoRH {
   email?: string;
   permissoes?: string[];
   [chave: string]: unknown;
+}
+
+/* ------------------------------------------------------------------ */
+/* Indicador: faixa etária dos dependentes                             */
+/* (`GET /rh/indicadores/faixa-dependentes`, aba Inconsistências)       */
+/* ------------------------------------------------------------------ */
+
+export interface FaixaDependentes {
+  /** Rótulo da faixa como o backend manda: `0-13`, `40+`, `Sem data`… */
+  faixa: string;
+  idade_minima: number | null;
+  idade_maxima: number | null;
+  /** Vale de 21 anos em diante e para `Sem data`. */
+  exige_comprovacao: boolean;
+  dependentes: number;
+  irrf: number;
+  salario_familia: number;
+  universitario: number;
+  deficiente: number;
+  irrf_fora_do_limite: number;
+  salario_familia_fora_do_limite: number;
+  /** Dependentes com IRRF **ou** salário-família fora do limite. Conta uma vez. */
+  em_desconformidade: number;
+}
+
+export interface IndicadorFaixas {
+  gerado_em: string;
+  filtros: {
+    divisao: string | null;
+    subdivisao: string | null;
+    vinculo: string | null;
+  };
+  vinculos_com_dependentes: number;
+  dependentes: number;
+  em_desconformidade: number;
+  sem_data: number;
+  /** Sempre 8 itens, na ordem do backend. Não reordene nem filtre. */
+  faixas: FaixaDependentes[];
 }

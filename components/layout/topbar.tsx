@@ -4,37 +4,15 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import {
-  Bell,
-  CalendarRange,
-  ChevronRight,
-  Command,
-  Download,
-  Moon,
-  Search,
-  Sun,
-} from "lucide-react";
+import { ChevronRight, Moon, RefreshCw, Sun } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { navLabels } from "@/lib/nav";
+import { useSessaoRH } from "@/lib/rh/api";
+import { iniciais, primeiroNome } from "@/lib/rh/perfil";
+import { useAcaoAtualizacao } from "@/components/layout/atualizacao";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -59,7 +37,12 @@ function ThemeToggle() {
 export function Topbar() {
   const pathname = usePathname();
   const current = navLabels[pathname] ?? "Visão geral";
-  const [period, setPeriod] = React.useState("30d");
+  const acao = useAcaoAtualizacao();
+  const sessao = useSessaoRH();
+
+  const nome = sessao.data?.name || sessao.data?.email || "";
+  const avatar = iniciais(nome || "?");
+  const primeiro = primeiroNome(nome);
 
   return (
     <header className="bg-background/85 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-20 border-b backdrop-blur">
@@ -75,36 +58,21 @@ export function Topbar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-            <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon-sm" className="relative" aria-label="Notificações">
-                <Bell className="size-4" />
-                <span className="bg-destructive absolute top-1.5 right-1.5 size-1.5 rounded-full ring-2 ring-background" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-72">
-              <DropdownMenuLabel>Notificações</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex-col items-start gap-0.5 py-2">
-                <span className="text-[13px] font-medium">Meta de outubro atingida</span>
-                <span className="text-muted-foreground text-[11.5px]">
-                  Receita passou de R$ 1,2 mi · há 2 h
-                </span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex-col items-start gap-0.5 py-2">
-                <span className="text-[13px] font-medium">Sincronização concluída</span>
-                <span className="text-muted-foreground text-[11.5px]">
-                  14 fontes atualizadas · há 5 h
-                </span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex-col items-start gap-0.5 py-2">
-                <span className="text-[13px] font-medium">Queda em Marketplace</span>
-                <span className="text-muted-foreground text-[11.5px]">
-                  Receita 8,4% abaixo da média · ontem
-                </span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {acao && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={acao.atualizar}
+              disabled={acao.ocupado}
+              aria-label={acao.rotulo}
+              title={acao.dica ?? acao.rotulo}
+            >
+              <RefreshCw
+                className={cn("size-4", acao.ocupado && "animate-spin")}
+                aria-hidden="true"
+              />
+            </Button>
+          )}
 
           <ThemeToggle />
 
@@ -118,9 +86,9 @@ export function Topbar() {
             aria-label="Conta"
           >
             <span className="bg-primary/12 text-primary flex size-7 items-center justify-center rounded-full text-[11px] font-semibold">
-              AV
+              {avatar}
             </span>
-            <span className="hidden text-[12.5px] font-medium sm:block">Ana</span>
+            <span className="hidden text-[12.5px] font-medium sm:block">{primeiro || "—"}</span>
           </button>
         </div>
       </div>
