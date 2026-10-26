@@ -34,6 +34,8 @@
         --verde: #2a9d8f;
         --ouro: #b7791f;
         --ambar: #b9470e;
+        --desconformidade: #c2850c;
+        --desconformidade-leve: #ffcd07;
       }
       * { box-sizing: border-box; }
       html, body { margin: 0; }
@@ -45,7 +47,7 @@
         -webkit-font-smoothing: antialiased;
       }
       /* números grandes em Plex Condensed, como no guia */
-      .rcard .vl, .cat .big, .alerta .n, .donut .centro b {
+      .rcard .vl, .cat .val, .outras .num, .donut .centro b {
         font-family: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
         font-weight: 600;
       }
@@ -90,14 +92,41 @@
       /* ---------- conteúdo ---------- */
       .main { flex: 1; min-width: 0; padding: 14px 18px 22px; }
 
-      .grid { display: grid; grid-template-columns: 262px minmax(0, 1fr); gap: 10px; align-items: start; }
+      .grid { display: flex; flex-direction: column; gap: 10px; }
 
-      /* ---------- sidebar de filtros ---------- */
-      .side { background: #fff; border: 1px solid var(--borda); border-radius: 10px; padding: 10px; }
-      .side h3 {
+      /* ---------- barra de filtros (topo) ---------- */
+      /* Filtros numa faixa horizontal acima das abas: antes eram uma coluna de
+         262px à esquerda, largura que todas as abas pagavam. */
+      .barra-filtros {
+        background: #fff; border: 1px solid var(--borda); border-radius: 10px; padding: 10px;
+        display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 22px;
+      }
+      .barra-filtros .campo { min-width: 190px; flex: 1; }
+      .barra-filtros .campo:first-child { max-width: 300px; }
+      .barra-filtros h3 {
         font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em;
         color: var(--texto-sec); margin: 0 0 5px; font-weight: 600;
       }
+
+      /* ---------- aba Pendência: cards à esquerda ---------- */
+      /* 280px é o mesmo valor do app: o bloco "tokens do guia visual" abaixo já
+         põe select, pills e rótulo do card no tamanho real, então a coluna
+         também precisa estar — é a largura que o card tem em produção.
+         `align-self: start` só na coluna de cards: a direita continua ocupando
+         a altura toda, como no app. */
+      .aba-regra {
+        display: grid; grid-template-columns: 280px minmax(0, 1fr);
+        gap: 10px; align-items: stretch;
+      }
+      .pendencias {
+        background: #fff; border: 1px solid var(--borda); border-radius: 10px; padding: 10px;
+        align-self: start;
+      }
+      .pendencias h3 {
+        font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em;
+        color: var(--texto-sec); margin: 0 0 5px; font-weight: 600;
+      }
+      .conteudo { min-width: 0; }
       .select {
         height: 32px; border: 1px solid var(--borda); border-radius: 7px; background: #fff;
         display: flex; align-items: center; justify-content: space-between; padding: 0 9px;
@@ -113,19 +142,38 @@
       .pill.on { background: var(--azul-escuro); border-color: var(--azul-escuro); color: #fff; font-weight: 500; }
 
       .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+      /* Subtítulo de grupo dos cards (Dependentes / Contato do servidor). Fica
+         menor e mais espaçado que o h3 da seção para não competir com ele.
+         A classe é `grupo-cards` e não `grupo`: `.grupo` já é o grupo da
+         legenda do donut (`.grupo .gh`, `.grupo li`). */
+      .grupo-cards {
+        font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.08em;
+        color: var(--texto-sec); margin: 0; font-weight: 700;
+      }
+      .grupo-cards + .cards { margin-top: 4px; }
       .rcard {
         min-height: 70px; border: 1px solid var(--borda); border-radius: 9px; background: #fff;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         gap: 3px; padding: 6px 4px; cursor: pointer; font-family: inherit;
+        /* `relative` existe para o selo de crítica: ancorado no canto e fora do
+           fluxo, senão ele ocupava uma linha e só esse card ficava mais alto. */
+        position: relative;
       }
       .rcard .nm { font-size: 10px; font-weight: 600; line-height: 1.15; text-align: center; color: var(--texto); }
       .rcard .vl { font-size: 19px; font-weight: 600; line-height: 1; color: var(--texto); font-variant-numeric: tabular-nums; }
-      .rcard.crit { grid-column: 1 / -1; border-color: var(--critico-borda); }
-      .rcard.crit .nm, .rcard.crit .vl { color: var(--critico); }
-      .rcard.crit.on { background: var(--critico-bg); border-color: var(--critico); box-shadow: inset 0 0 0 1px var(--critico); }
+      /* A regra crítica tem o mesmo tratamento das demais. O que a distingue é
+         a largura (duas colunas) e o selo de contorno — antes era vermelha de
+         ponta a ponta e virava o elemento mais chamativo da tela. */
+      .rcard.crit { grid-column: 1 / -1; }
+      .rcard.on {
+        border-color: var(--azul); background: var(--azul-suave);
+        box-shadow: inset 0 0 0 1px var(--azul);
+      }
       .rcard .tag {
-        font-size: 8px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-        background: var(--critico); color: #fff; border-radius: 3px; padding: 1px 4px;
+        position: absolute; top: 3px; right: 3px;
+        font-size: 7px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+        border: 1px solid var(--borda); color: var(--texto-sec); background: #fff;
+        border-radius: 999px; padding: 1px 4px; line-height: 1;
       }
       .limpar {
         margin-top: 8px; background: none; border: 0; padding: 0; font-family: inherit;
@@ -136,15 +184,25 @@
       .tabs {
         display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px;
         background: #fff; border: 1px solid var(--borda); border-radius: 10px;
-        padding: 4px; margin-bottom: 10px;
+        padding: 4px;
       }
       .tab {
         height: 36px; width: 100%; border: 0; border-radius: 7px; background: transparent;
         font-family: inherit; font-size: 13px; font-weight: 500; color: var(--texto-sec);
         cursor: pointer; transition: background-color 0.15s, color 0.15s;
+        /* "Inconsistências" é o rótulo mais largo; em tela apertada ele corta
+           com reticência em vez de vazar do botão. */
+        padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
       .tab:hover { background: var(--fundo); }
       .tab.on { background: var(--azul-escuro); color: #fff; }
+
+      /* Título da aba: na faixa só cabe o nome curto, então o assunto completo
+         fica aqui — e muda junto com a aba. */
+      .painel-titulo {
+        margin: 0 0 8px; padding: 0 4px;
+        font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: var(--texto);
+      }
 
       /* ---------- cards ---------- */
       .card { background: #fff; border: 1px solid var(--borda); border-radius: 10px; }
@@ -157,15 +215,23 @@
         font-family: inherit; font-size: 10px; color: var(--texto-sec); padding: 0 8px;
         opacity: 0.7; cursor: not-allowed; white-space: nowrap;
       }
-      .row2 { display: grid; grid-template-columns: 3fr 2fr; gap: 10px; margin-top: 10px; }
+      .row2 { display: grid; grid-template-columns: 4fr 1fr; gap: 10px; margin-top: 10px; }
+      /* Linha 80/20 da aba Inconsistências. O piso de 216px faz o papel do
+         `minmax(216px, 1fr)` do app: entre 1180 e 1500px de tela 20% daria
+         ~128px e a rosca de 140px não caberia. */
+      .row-qualidade { display: grid; grid-template-columns: minmax(0, 4fr) minmax(216px, 1fr); gap: 10px; }
 
       /* ---------- ranking ---------- */
       .rank { list-style: none; margin: 2px 0 0; padding: 0; }
-      .rank li { display: flex; align-items: center; gap: 7px; padding: 4px 5px; border-radius: 6px; }
-      .rank li .nm { width: 96px; flex-shrink: 0; font-size: 10.5px; color: var(--texto); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .rank li .trilho { flex: 1; height: 7px; background: var(--trilho); border-radius: 999px; overflow: hidden; }
+      .rank li {
+        display: grid; grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "nm num" "trilho trilho";
+        gap: 4px 6px; padding: 5px; border-radius: 6px;
+      }
+      .rank li .nm { grid-area: nm; min-width: 0; font-size: 10.5px; color: var(--texto); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .rank li .trilho { grid-area: trilho; height: 6px; background: var(--trilho); border-radius: 999px; overflow: hidden; }
       .rank li .trilho i { display: block; height: 100%; border-radius: 999px; background: var(--critico); }
-      .rank li .num { width: 34px; text-align: right; font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+      .rank li .num { grid-area: num; text-align: right; font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
       /* ---------- donuts ---------- */
       .donut-wrap { display: flex; align-items: center; gap: 12px; }
@@ -183,6 +249,25 @@
       .legend .vl { font-weight: 600; font-variant-numeric: tabular-nums; }
       .legend .pc { width: 34px; text-align: right; color: var(--texto-sec); font-variant-numeric: tabular-nums; }
 
+      /* legenda agrupada do donut por regra: a cor é a categoria */
+      .grupos { list-style: none; margin: 0; padding: 0; flex: 1; min-width: 0; display: grid; gap: 8px; }
+      .grupo .gh { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 10.5px; font-weight: 700; color: var(--texto); }
+      .grupo .gh i { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
+      .grupo .gh .soma { font-weight: 600; color: var(--texto-sec); font-variant-numeric: tabular-nums; }
+      .grupo ul { list-style: none; margin: 2px 0 0; padding: 0 0 0 13px; }
+      .grupo li { display: flex; align-items: baseline; gap: 8px; padding: 1px 0; font-size: 10.5px; }
+      .grupo .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--texto-sec); }
+      /* Cada regra da legenda é um atalho para a aba Pendência (no app é um
+         botão de verdade; aqui só a affordance). */
+      .grupo ul li { cursor: pointer; }
+      .grupo ul li:hover .nm { text-decoration: underline; text-underline-offset: 2px; }
+      .grupo .vl { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--texto); }
+      /* O card do donut divide a linha em 80/20, então a rosca sobe para cima da
+         legenda: lado a lado, a coluna de ~180px espremeria o nome das regras. */
+      .donut-empilhado .donut-wrap { flex-direction: column; align-items: center; }
+      .donut-empilhado .grupos { width: 100%; }
+      .donut-empilhado .card-b { display: flex; flex-direction: column; justify-content: center; }
+
       .cargos { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
       .cargos li { display: flex; align-items: center; gap: 7px; }
       .cargos .nm { width: 124px; flex-shrink: 0; font-size: 10.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -191,63 +276,108 @@
       .cargos .num { width: 32px; text-align: right; font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
       /* ---------- qualidade ---------- */
-      .cats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-      .cat { border: 1px solid var(--borda); border-radius: 8px; padding: 8px; }
-      .cat .bar { display: block; width: 28px; height: 3px; border-radius: 999px; }
-      .cat .big { font-size: 19px; font-weight: 600; margin: 7px 0 0; line-height: 1; font-variant-numeric: tabular-nums; }
-      .cat .lb { font-size: 10.5px; font-weight: 600; margin: 6px 0 0; }
-      .cat .dt { font-size: 9.5px; color: var(--texto-sec); margin: 2px 0 0; line-height: 1.35; }
+      .cats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; align-items: end; height: 150px; }
+      .cat { display: grid; grid-template-rows: auto 1fr auto; height: 100%; justify-items: center; }
+      .cat .val { font-size: 10.5px; font-weight: 600; color: var(--texto); margin: 0 0 4px; font-variant-numeric: tabular-nums; }
+      .cat .bar { align-self: end; display: block; width: 64%; max-width: 90px; background: var(--azul); border-radius: 4px 4px 0 0; }
+      .cat .lb { font-size: 10.5px; font-weight: 600; margin: 6px 0 0; text-align: center; }
+      /* Na linha 80/20 o card das colunas estica até a altura do card do donut,
+         em vez de deixar um vazio no pé. O piso de 150px é a altura de antes. */
+      .card-flex { display: flex; flex-direction: column; }
+      .card-flex .card-b { flex: 1; display: flex; flex-direction: column; }
+      .card-flex .cats { flex: 1; height: auto; min-height: 150px; }
 
-      .faixas { display: grid; grid-template-columns: repeat(8, 1fr); gap: 7px; align-items: end; height: 92px; }
-      .faixa { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
-      .faixa .col { width: 100%; background: var(--trilho); border: 1px dashed var(--borda); border-bottom: 0; border-radius: 4px 4px 0 0; }
+      /* Faixa etária: duas barras por faixa — total e em desconformidade */
+      .faixas { display: grid; grid-template-columns: repeat(8, 1fr); gap: 7px; align-items: end; height: 128px; }
+      .faixa { display: grid; grid-template-rows: 1fr auto; height: 100%; }
+      .faixa .par { display: flex; align-items: flex-end; justify-content: center; gap: 2px; }
+      .faixa .bar { display: block; width: 46%; border-radius: 3px 3px 0 0; background: var(--azul); }
+      .faixa .bar.desc { background: var(--desconformidade-leve); }
+      .faixa .bar.desc.lar { background: var(--desconformidade); }
       .faixa span { display: block; text-align: center; font-size: 9px; color: var(--texto-sec); margin-top: 4px; }
-      .faixa.lar span { color: var(--laranja); font-weight: 600; }
-      .aviso {
-        margin-top: 8px; border: 1px dashed var(--borda); background: var(--fundo); border-radius: 6px;
-        padding: 6px 9px; font-size: 10px; color: var(--texto-sec);
-      }
+      .faixa span em { display: block; font-size: 8px; font-style: normal; font-weight: 700; color: var(--desconformidade); }
+      .nota { margin: 8px 0 0; font-size: 10px; line-height: 1.5; color: var(--texto-sec); }
 
-      .alertas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-      .alerta { border: 1px solid var(--borda); border-radius: 8px; padding: 8px; }
-      .alerta .n { font-size: 19px; font-weight: 600; color: var(--ambar); line-height: 1; font-variant-numeric: tabular-nums; }
-      .alerta .t { font-size: 10.5px; font-weight: 600; margin: 6px 0 0; line-height: 1.3; }
-      .alerta .d { font-size: 9.5px; color: var(--texto-sec); margin: 2px 0 0; line-height: 1.35; }
+      /* outras regras: barras horizontais, cor pelo tipo do backend */
+      .legenda-tipo { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; font-size: 10.5px; color: var(--texto-sec); }
+      .legenda-tipo span { display: inline-flex; align-items: center; gap: 5px; }
+      .legenda-tipo i { width: 12px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+      .outras { list-style: none; margin: 9px 0 0; padding: 0; }
+      .outras li { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+      .outras .lb { width: 42%; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10.5px; color: var(--texto-sec); }
+      .outras .trilho { flex: 1; height: 9px; background: var(--trilho); border-radius: 999px; overflow: hidden; }
+      .outras .trilho i { display: block; height: 100%; border-radius: 999px; }
+      .outras .num { width: 34px; text-align: right; font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
-      /* ---------- tabela ---------- */
-      .tbl-wrap { max-height: 560px; overflow: auto; border-radius: 10px; background: #fff; border: 1px solid var(--borda); }
-      table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 10.5px; }
-      thead th {
-        position: sticky; top: 0; background: #fff; z-index: 2; text-align: right;
-        font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--texto-sec);
-        font-weight: 600; padding: 7px 8px; box-shadow: inset 0 -1px 0 var(--borda); white-space: nowrap;
+      /* A tabela saiu da aba (ver o comentário no HTML): sem CSS de tabela. */
+
+      /* ---------- Comparativo: gráficos ---------- */
+      .comparativo { display: flex; flex-direction: column; gap: 10px; }
+      /* Os dois gráficos na mesma linha: são duas leituras do mesmo filtro. */
+      .comparativo-grade { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: stretch; }
+      .comparativo-grade.uma-coluna { grid-template-columns: 1fr; }
+      /* Botão de prévia do mock: no app o gráfico agrupado aparece sozinho
+         quando há secretaria no filtro, e some com "Toda a Prefeitura". */
+      .previa {
+        align-self: flex-start; height: 26px; border: 1px dashed var(--entrada); border-radius: 6px;
+        background: transparent; font-family: inherit; font-size: 10.5px; color: var(--texto-sec);
+        padding: 0 10px; cursor: pointer;
       }
-      thead th:first-child { text-align: left; }
-      thead th.crit { color: var(--critico); }
-      tbody td { padding: 6px 8px; text-align: right; box-shadow: inset 0 -1px 0 var(--borda); font-variant-numeric: tabular-nums; white-space: nowrap; }
-      tbody td:first-child { text-align: left; }
-      tbody tr:hover { background: #f8fafd; }
-      tbody td.crit { color: var(--critico); font-weight: 600; }
-      tbody td.abrir { color: var(--azul); text-decoration: underline; font-size: 9.5px; }
-      .tag-lot { font-size: 8px; font-weight: 600; color: var(--ouro); background: #fdf3e7; border-radius: 3px; padding: 1px 4px; margin-left: 4px; }
-      tfoot td { background: var(--fundo); padding: 7px 8px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
-      tfoot td:first-child { text-align: left; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--texto-sec); }
+      .previa:hover { background: #fff; }
+      .oculto { display: none; }
+
+      /* composição: coluna 100% empilhada por secretaria */
+      .comp-colunas { display: flex; align-items: stretch; gap: 7px; height: 302px; padding-bottom: 92px; }
+      /* sozinha na linha o vão encolhe: é ele que limita a largura da coluna */
+      .comparativo-grade.uma-coluna .comp-colunas { gap: 4px; }
+      .comp-col { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; }
+      /* Total em cima, pilha no meio: a leitura é "quanto" e depois "de que". */
+      .comp-total { height: 15px; text-align: center; font-size: 8.5px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--texto); }
+      /* A pilha tem teto de largura, como o `maxBarSize` do app: a categoria
+         ocupa a largura toda, a coluna para de engordar em 26px. */
+      .comp-pilha { flex: 1; display: flex; flex-direction: column-reverse; width: 100%; max-width: 26px; margin: 0 auto; }
+      /* Sozinha na linha, a composição ganha colunas mais largas: o teto sobe
+         e o vão entre categorias cai (o vão é o que realmente limitava). */
+      .comparativo-grade.uma-coluna .comp-pilha { max-width: 60px; }
+      .comp-pilha span { display: block; width: 100%; }
+      .comp-pilha span:last-child { border-radius: 3px 3px 0 0; }
+      /* Nome inclinado a −45°, terminando no eixo — o mesmo ângulo do app. */
+      .comp-nome {
+        position: absolute; top: 100%; right: 50%;
+        transform: rotate(45deg); transform-origin: right top;
+        font-size: 10.8px; color: var(--texto-sec); white-space: nowrap;
+      }
+      .legenda-comp { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0 0; padding: 0; list-style: none; font-size: 10.5px; color: var(--texto-sec); }
+      .legenda-comp li { display: inline-flex; align-items: center; gap: 5px; }
+      .legenda-comp i { width: 12px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+      .legenda-comp .laranja { width: auto; height: auto; background: none; color: var(--laranja); font-weight: 700; }
 
       .fonte { font-size: 9.5px; color: var(--texto-sec); line-height: 1.5; margin: 10px 2px 0; }
       .painel { display: none; }
       .painel.on { display: block; }
       .dupla { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
 
+      @media (max-width: 1023px) {
+        /* mesmo corte do app (`lg:`): abaixo de 1024px os dois gráficos empilham */
+        .comparativo-grade { grid-template-columns: 1fr; }
+      }
+
       @media (max-width: 1180px) {
         .app-nav { display: none; }
-        .grid { grid-template-columns: 1fr; }
-        .row2, .dupla { grid-template-columns: 1fr; }
-        .cats { grid-template-columns: repeat(2, 1fr); }
-        .alertas { grid-template-columns: repeat(2, 1fr); }
+        .grid { gap: 10px; }
+        .aba-regra { grid-template-columns: 1fr; }
+        .row2, .row-qualidade, .dupla { grid-template-columns: 1fr; }
+        /* empilhado o card volta a ser largo: a rosca desce para o lado da legenda */
+        .donut-empilhado .donut-wrap { flex-direction: row; }
+      }
+      /* colunas: em tela estreita vira 2 por linha, cada uma com altura própria */
+      @media (max-width: 620px) {
+        .cats { grid-template-columns: repeat(2, 1fr); height: auto; row-gap: 14px; }
+        .cat { height: 132px; }
       }
 
       /* ---------- tokens do guia visual (20/10/2026) ---------- */
-      .side h3 { font-size: 12px; letter-spacing: 0; text-transform: none; }
+      .barra-filtros h3, .pendencias h3 { font-size: 12px; letter-spacing: 0; text-transform: none; }
       .select { font-size: 14px; font-weight: 600; height: 44px; border-radius: 6px; border-color: var(--entrada); }
       .pill { font-size: 12px; font-weight: 500; height: 32px; }
       .pill.on { background: var(--azul); border-color: var(--azul); }
@@ -255,32 +385,28 @@
       .tab { font-size: 14px; font-weight: 600; height: 40px; color: var(--texto); }
       .ghost-btn { font-size: 12px; }
       .rcard .nm { font-size: 11px; color: var(--rotulo); }
+      .grupo-cards { font-size: 11px; }
       .rcard .vl { font-size: 22px; }
-      .rcard .tag { font-size: 11px; letter-spacing: 0.04em; border-radius: 999px; }
+      .rcard .tag { font-size: 9px; letter-spacing: 0.04em; border-radius: 999px; }
       .card-h h2 { font-size: 15px; letter-spacing: -0.01em; }
       .card-h p { font-size: 12px; margin-top: 6px; }
+      /* Comparativo: só o card da secretaria ganha título 20% maior (15 → 18) e
+         legenda 20% maior (10,5 → 12,6, a mesma escala do mock). O card da
+         composição fica como está: a 18px "Composição das pendências por
+         secretaria" não cabe em meio card e quebraria em duas linhas. */
+      #card-comparativo-sec .card-h h2 { font-size: 18px; }
+      #card-comparativo-sec .legenda-comp { font-size: 12.6px; }
       .rank li .nm, .rank li .num { font-size: 12px; }
       .legend li { font-size: 12px; }
       .legend .pc { font-size: 12px; }
+      .grupo .gh, .grupo li { font-size: 12px; }
       .donut .centro small { font-size: 10px; text-transform: none; letter-spacing: 0; }
       .donut .centro b { font-size: 18px; }
       .cargos .nm, .cargos .num { font-size: 12px; }
-      .cat .big { font-size: 22px; }
-      .cat .lb { font-size: 13px; }
-      .cat .dt { font-size: 12px; }
+      .cat .lb { font-size: 12px; }
       .faixa span { font-size: 12px; }
-      .aviso, .fonte { font-size: 12px; }
-      .alerta .t { font-size: 12px; font-weight: 500; }
-      .alerta .d { font-size: 11px; }
-      table { font-size: 13px; }
-      thead th { font-size: 11px; letter-spacing: 0.04em; box-shadow: inset 0 -2px 0 var(--borda); }
-      tbody td { box-shadow: inset 0 -1px 0 var(--borda-suave); }
-      tbody td.abrir {
-        font-size: 12px; font-weight: 600; text-decoration: none;
-        border: 1px solid var(--azul); border-radius: 999px; padding: 2px 8px;
-      }
-      .tag-lot { font-size: 11px; color: var(--ambar); background: transparent; padding: 0; }
-      tfoot td:first-child { font-size: 11px; }
+      .fonte { font-size: 12px; }
+      .outras .lb, .outras .num, .legenda-tipo { font-size: 12px; }
     </style>
   </head>
   <body>
@@ -329,7 +455,7 @@
         <a href="#" title="Visão geral"><i></i>Visão geral</a>
         <a href="#" title="Vendas"><i></i>Vendas</a>
         <a href="#" title="Clientes"><i></i>Clientes</a>
-        <a href="#" title="Produtos"><i></i>Produtos</a>
+        <a href="afastamentos.html" title="Afastamentos"><i></i>Afastamentos</a>
         <a href="#" class="on" title="Raio-X Secretarias"><i></i>Raio-X Secretarias</a>
         <div class="grp">Operação</div>
         <a href="#" title="Relatórios"><i></i>Relatórios</a>
@@ -338,53 +464,63 @@
 
       <div class="main">
         <div class="grid">
-          <!-- sidebar -->
-          <aside class="side">
-            <h3>Secretaria</h3>
-            <div class="select">Toda a Prefeitura (2.463) <span>▼</span></div>
-
-            <h3 style="margin-top: 12px">Comparar secretarias com</h3>
-            <div class="pills">
-              <button class="pill on">Todas</button>
-              <button class="pill">30+ vínculos</button>
-              <button class="pill">100+ vínculos</button>
+          <!-- barra de filtros: acima das abas, vale para as quatro -->
+          <div class="barra-filtros">
+            <div class="campo">
+              <h3>Secretaria</h3>
+              <div class="select">Toda a Prefeitura (2.463) <span>▼</span></div>
             </div>
-
-            <h3 style="margin-top: 12px">Regra em foco</h3>
-            <div class="cards">
-              <button class="rcard"><span class="nm">IRRF acima da idade</span><span class="vl">447</span></button>
-              <button class="rcard"><span class="nm">Salário-família acima de 14</span><span class="vl">443</span></button>
-              <button class="rcard"><span class="nm">Dependente sem CPF</span><span class="vl">317</span></button>
-              <button class="rcard"><span class="nm">Dependente sem nascimento</span><span class="vl">5</span></button>
-              <button class="rcard crit on">
-                <span class="nm">Certidão incompleta</span>
-                <span class="tag">Crítica</span>
-                <span class="vl">1.083</span>
-              </button>
-              <button class="rcard"><span class="nm">Servidor sem e-mail</span><span class="vl">218</span></button>
-              <button class="rcard"><span class="nm">Servidor sem telefone</span><span class="vl">61</span></button>
+            <div class="campo">
+              <h3>Mostrar secretarias com</h3>
+              <div class="pills">
+                <button class="pill on">Todas</button>
+                <button class="pill">30 ou mais vínculos</button>
+                <button class="pill">100 ou mais vínculos</button>
+              </div>
+              <button class="limpar">× Limpar filtros</button>
             </div>
-            <button class="limpar">× Limpar filtros</button>
-          </aside>
+          </div>
 
-          <!-- área das abas -->
-          <div>
-            <div class="tabs">
-              <button class="tab on" data-tab="regra">Regra em foco</button>
-              <button class="tab" data-tab="quadro">Quadro</button>
-              <button class="tab" data-tab="qualidade">Qualidade</button>
-              <button class="tab" data-tab="tabela">Tabela</button>
-            </div>
+          <div class="tabs">
+            <button class="tab on" data-tab="quadro">Panorama</button>
+            <button class="tab" data-tab="qualidade">Inconsistências</button>
+            <button class="tab" data-tab="tabela">Comparativo</button>
+            <button class="tab" data-tab="regra">Pendência</button>
+          </div>
 
-            <!-- ================= REGRA EM FOCO ================= -->
-            <section class="painel on" id="regra">
+          <!-- ================= PENDÊNCIA ================= -->
+          <section class="painel" id="regra">
+            <h2 class="painel-titulo">Análise da pendência selecionada</h2>
+            <div class="aba-regra">
+              <aside class="pendencias">
+                <h3>Escolha a pendência</h3>
+
+                <p class="grupo-cards">Dependentes</p>
+                <div class="cards">
+                  <button class="rcard crit on">
+                    <span class="nm">Sem certidão</span>
+                    <span class="tag">Crítica</span>
+                    <span class="vl">1.083</span>
+                  </button>
+                  <button class="rcard"><span class="nm">Sem CPF</span><span class="vl">317</span></button>
+                  <button class="rcard"><span class="nm">Sem data de nascimento</span><span class="vl">5</span></button>
+                  <button class="rcard"><span class="nm">IRRF fora da idade</span><span class="vl">447</span></button>
+                  <button class="rcard"><span class="nm">Salário-família fora da idade</span><span class="vl">443</span></button>
+                </div>
+
+                <p class="grupo-cards" style="margin-top: 8px">Contato do servidor</p>
+                <div class="cards">
+                  <button class="rcard"><span class="nm">Sem e-mail</span><span class="vl">218</span></button>
+                  <button class="rcard"><span class="nm">Sem celular</span><span class="vl">61</span></button>
+                </div>
+              </aside>
+
+              <div class="conteudo">
               <div class="card">
                 <div class="card-h">
                   <div>
                     <h2>Certidão incompleta: % dos vínculos por secretaria</h2>
-                    <p>Tracejado: média da Prefeitura (44,0%). Laranja: acima da média.</p>
                   </div>
-                  <button class="ghost-btn" title="Tela de lista nominal (em construção)">Ver lista nominal</button>
                 </div>
                 <div class="card-b">
                   <svg viewBox="0 0 760 196" style="width: 100%; height: auto; display: block" role="img" aria-label="Percentual de certidões incompletas por secretaria">
@@ -405,17 +541,17 @@
 
                     <!-- barras: laranja = acima da média -->
                     <g>
-                      <rect x="44" y="34.7" width="26" height="115.3" rx="3" fill="#e0731f" />
+                      <rect x="44" y="34.7" width="26" height="115.3" rx="3" fill="#0c326f" />
                       <rect x="91.1" y="68.3" width="26" height="81.7" rx="3" fill="#1351b4" />
                       <rect x="138.2" y="54.8" width="26" height="95.2" rx="3" fill="#1351b4" />
-                      <rect x="185.3" y="31.9" width="26" height="118.1" rx="3" fill="#e0731f" />
+                      <rect x="185.3" y="31.9" width="26" height="118.1" rx="3" fill="#0c326f" />
                       <rect x="232.4" y="103.3" width="26" height="46.7" rx="3" fill="#1351b4" />
                       <rect x="279.5" y="91.7" width="26" height="58.3" rx="3" fill="#1351b4" />
-                      <rect x="326.6" y="35.4" width="26" height="114.6" rx="3" fill="#e0731f" />
-                      <rect x="373.7" y="20.3" width="26" height="129.7" rx="3" fill="#e0731f" />
+                      <rect x="326.6" y="35.4" width="26" height="114.6" rx="3" fill="#0c326f" />
+                      <rect x="373.7" y="20.3" width="26" height="129.7" rx="3" fill="#0c326f" />
                       <rect x="420.8" y="100.8" width="26" height="49.2" rx="3" fill="#1351b4" />
                       <rect x="467.9" y="72.3" width="26" height="77.7" rx="3" fill="#1351b4" />
-                      <rect x="515" y="40.1" width="26" height="109.9" rx="3" fill="#e0731f" />
+                      <rect x="515" y="40.1" width="26" height="109.9" rx="3" fill="#0c326f" />
                       <rect x="562.1" y="72.3" width="26" height="77.7" rx="3" fill="#1351b4" />
                       <rect x="609.2" y="91.7" width="26" height="58.3" rx="3" fill="#1351b4" />
                       <rect x="656.3" y="111" width="26" height="39" rx="3" fill="#1351b4" />
@@ -439,10 +575,6 @@
                       <text x="669.3" y="106.3">16,7%</text>
                     </g>
 
-                    <!-- média -->
-                    <line x1="34" y1="47.3" x2="716" y2="47.3" stroke="#56637a" stroke-width="1.3" stroke-dasharray="6 4" />
-                    <text x="716" y="44" font-size="9" fill="#56637a" text-anchor="end" font-family="inherit">44,0%</text>
-
                     <!-- eixos -->
                     <g fill="#56637a" font-size="9" font-family="inherit" text-anchor="end">
                       <text x="57" y="168" transform="rotate(-32 57 168)">Educação</text>
@@ -461,6 +593,16 @@
                       <text x="669.3" y="168" transform="rotate(-32 669.3 168)">Planejamento</text>
                     </g>
                   </svg>
+                  <p style="display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0 0; font-size: 10.5px; color: var(--texto-sec)">
+                    <span>
+                      <i style="display: inline-block; width: 12px; height: 8px; border-radius: 2px; background: #0c326f; margin-right: 4px; vertical-align: middle"></i>
+                      Acima de 44,0% (Prefeitura)
+                    </span>
+                    <span>
+                      <i style="display: inline-block; width: 12px; height: 8px; border-radius: 2px; background: #1351b4; margin-right: 4px; vertical-align: middle"></i>
+                      44,0% ou menos
+                    </span>
+                  </p>
                 </div>
               </div>
 
@@ -597,15 +739,18 @@
                       <li><span class="nm">Fazenda</span><span class="trilho"><i style="width: 2%"></i></span><span class="num">14</span></li>
                     </ul>
                     <p style="font-size: 9.5px; color: var(--texto-sec); margin: 8px 0 0">
-                      Quantidade absoluta na regra em foco.
+                      Vínculos na regra em foco.
                     </p>
                   </div>
                 </div>
               </div>
+              </div><!-- /.conteudo -->
+            </div><!-- /.aba-regra -->
             </section>
 
-            <!-- ================= QUADRO ================= -->
-            <section class="painel" id="quadro">
+            <!-- ================= PANORAMA ================= -->
+            <section class="painel on" id="quadro">
+              <h2 class="painel-titulo">Panorama do quadro de pessoal</h2>
               <div class="dupla">
                 <div class="card">
                   <div class="card-h">
@@ -682,7 +827,7 @@
                   <div class="card-h">
                     <div>
                       <h2>Tipo de vínculo (Prefeitura)</h2>
-                      <p>Quadro fixo, independente da secretaria selecionada.</p>
+                      <p>Conjunto fixo, independente da secretaria selecionada.</p>
                     </div>
                   </div>
                   <div class="card-b">
@@ -704,46 +849,66 @@
               </div>
             </section>
 
-            <!-- ================= QUALIDADE ================= -->
+            <!-- ================= INCONSISTÊNCIAS ================= -->
             <section class="painel" id="qualidade">
-              <div class="card">
-                <div class="card-h">
-                  <div>
-                    <h2>Inconsistências por categoria</h2>
-                    <p>Cada vínculo é contado uma vez por regra; um vínculo pode aparecer em mais de uma categoria.</p>
+              <h2 class="painel-titulo">Inconsistências por categoria</h2>
+              <!-- 80/20: leitura por categoria (principal) + donut por regra -->
+              <div class="row-qualidade">
+                <div class="card card-flex">
+                  <div class="card-h">
+                    <div>
+                      <h2>Apontamentos por categoria</h2>
+                      <p>Cada vínculo é contado uma vez por regra; um vínculo pode aparecer em mais de uma categoria.</p>
+                    </div>
+                  </div>
+                  <div class="card-b">
+                    <div class="cats">
+                      <div class="cat"><p class="val">1.158</p><span class="bar" style="height: 100%"></span><p class="lb">Dependentes</p></div>
+                      <div class="cat"><p class="val">610</p><span class="bar" style="height: 53%"></span><p class="lb">Documentação</p></div>
+                      <div class="cat"><p class="val">731</p><span class="bar" style="height: 63%"></span><p class="lb">Contato</p></div>
+                      <div class="cat"><p class="val">—</p><span class="bar" style="height: 0"></span><p class="lb">Lotação</p></div>
+                      <div class="cat"><p class="val">—</p><span class="bar" style="height: 0"></span><p class="lb">Servidor</p></div>
+                    </div>
+                    <p class="nota">Lotação e Servidor ainda não têm contagem na API; a barra fica vazia.</p>
                   </div>
                 </div>
-                <div class="card-b">
-                  <div class="cats">
-                    <div class="cat">
-                      <span class="bar" style="background: #1351b4"></span>
-                      <p class="big" style="color: #1351b4">1.212</p>
-                      <p class="lb">Dependentes</p>
-                      <p class="dt">IRRF idade · salário-família · CPF · nascimento</p>
+
+                <div class="card donut-empilhado">
+                  <div class="card-h">
+                    <div>
+                      <h2>De que regra vêm os apontamentos</h2>
+                      <p>Toda a Prefeitura. Cada fatia é uma regra; a legenda mostra a categoria.</p>
                     </div>
-                    <div class="cat">
-                      <span class="bar" style="background: #b42318"></span>
-                      <p class="big" style="color: #b42318">1.083</p>
-                      <p class="lb">Documentação</p>
-                      <p class="dt">Certidão incompleta</p>
-                    </div>
-                    <div class="cat">
-                      <span class="bar" style="background: #2a9d8f"></span>
-                      <p class="big" style="color: #2a9d8f">279</p>
-                      <p class="lb">Contato</p>
-                      <p class="dt">Servidor sem e-mail ou telefone</p>
-                    </div>
-                    <div class="cat">
-                      <span class="bar" style="background: #b7791f"></span>
-                      <p class="big" style="color: #b7791f">106</p>
-                      <p class="lb">Lotação</p>
-                      <p class="dt">Subdivisão errada</p>
-                    </div>
-                    <div class="cat">
-                      <span class="bar" style="background: #8e4ec6"></span>
-                      <p class="big" style="color: #8e4ec6">1</p>
-                      <p class="lb">Servidor</p>
-                      <p class="dt">PIS ausente ou fictício</p>
+                  </div>
+                  <div class="card-b">
+                    <div class="donut-wrap">
+                      <div class="donut" style="width: 140px; height: 140px; background: conic-gradient(#1351b4 0 17.16%, #fff 17.16% 17.61%, #1351b4 17.61% 32.93%, #fff 32.93% 33.38%, #1351b4 33.38% 45.66%, #fff 45.66% 46.11%, #1351b4 46.11% 46.35%, #0c326f 46.35% 70.31%, #fff 70.31% 70.76%, #5992ed 70.76% 88.96%, #fff 88.96% 89.41%, #5992ed 89.41% 100%)">
+                        <div class="centro"><small>Apontamentos</small><b>2.499</b></div>
+                      </div>
+                      <ul class="grupos">
+                        <li class="grupo">
+                          <p class="gh"><i style="background: #1351b4"></i>Dependentes<span class="soma">1.158</span></p>
+                          <ul>
+                            <li title="Ver a pendência"><span class="nm">Salário-família acima da idade</span><span class="vl">440</span></li>
+                            <li title="Ver a pendência"><span class="nm">IRRF acima da idade</span><span class="vl">394</span></li>
+                            <li title="Ver a pendência"><span class="nm">Dependente sem CPF</span><span class="vl">318</span></li>
+                            <li title="Ver a pendência"><span class="nm">Dependente sem nascimento</span><span class="vl">6</span></li>
+                          </ul>
+                        </li>
+                        <li class="grupo">
+                          <p class="gh"><i style="background: #0c326f"></i>Documentação<span class="soma">610</span></p>
+                          <ul>
+                            <li title="Ver a pendência"><span class="nm">Certidão incompleta</span><span class="vl">610</span></li>
+                          </ul>
+                        </li>
+                        <li class="grupo">
+                          <p class="gh"><i style="background: #5992ed"></i>Contato<span class="soma">731</span></p>
+                          <ul>
+                            <li title="Ver a pendência"><span class="nm">Servidor sem telefone</span><span class="vl">466</span></li>
+                            <li title="Ver a pendência"><span class="nm">Servidor sem e-mail</span><span class="vl">265</span></li>
+                          </ul>
+                        </li>
+                      </ul>
                     </div>
                   </div>
                 </div>
@@ -753,102 +918,204 @@
                 <div class="card-h">
                   <div>
                     <h2>Faixa etária dos dependentes em desconformidade</h2>
-                    <p>Faixas de 21-23 anos em diante aparecem em laranja por exigirem comprovação.</p>
+                    <p>964 de 3.150 dependentes (30,6%) com IRRF ou salário-família marcado fora do limite de idade · 1.580 vínculos com dependentes.</p>
                   </div>
                 </div>
                 <div class="card-b">
                   <div class="faixas">
-                    <div class="faixa"><div class="col" style="height: 22%"></div><span>0-13</span></div>
-                    <div class="faixa"><div class="col" style="height: 30%"></div><span>14-17</span></div>
-                    <div class="faixa"><div class="col" style="height: 26%"></div><span>18-20</span></div>
-                    <div class="faixa lar"><div class="col" style="height: 34%"></div><span>21-23</span></div>
-                    <div class="faixa lar"><div class="col" style="height: 40%"></div><span>24-29</span></div>
-                    <div class="faixa lar"><div class="col" style="height: 32%"></div><span>30-39</span></div>
-                    <div class="faixa lar"><div class="col" style="height: 24%"></div><span>40+</span></div>
-                    <div class="faixa"><div class="col" style="height: 16%"></div><span>Sem data</span></div>
+                    <div class="faixa"><div class="par"><i class="bar" style="height: 100%"></i><i class="bar desc" style="height: 0"></i></div><span>0-13</span></div>
+                    <div class="faixa"><div class="par"><i class="bar" style="height: 47%"></i><i class="bar desc" style="height: 14%"></i></div><span>14-17</span></div>
+                    <div class="faixa"><div class="par"><i class="bar" style="height: 29%"></i><i class="bar desc" style="height: 5%"></i></div><span>18-20</span></div>
+                    <div class="faixa"><div class="par"><i class="bar" style="height: 22%"></i><i class="bar desc lar" style="height: 16%"></i></div><span>21-23<em>comprovação</em></span></div>
+                    <div class="faixa"><div class="par"><i class="bar" style="height: 18%"></i><i class="bar desc lar" style="height: 17%"></i></div><span>24-29<em>comprovação</em></span></div>
+                    <div class="faixa"><div class="par"><i class="bar" style="height: 14%"></i><i class="bar desc lar" style="height: 13%"></i></div><span>30-39<em>comprovação</em></span></div>
+                    <div class="faixa"><div class="par"><i class="bar" style="height: 7%"></i><i class="bar desc lar" style="height: 7%"></i></div><span>40+<em>comprovação</em></span></div>
+                    <div class="faixa"><div class="par"><i class="bar" style="height: 2%"></i><i class="bar desc lar" style="height: 2%"></i></div><span>Sem data<em>comprovação</em></span></div>
                   </div>
-                  <p class="aviso">Aguardando a consulta <b>03_faixa_dependentes.sql</b> — sem dados, as colunas acima são apenas a estrutura do gráfico.</p>
+                  <p style="display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0 0; font-size: 10.5px; color: var(--texto-sec)">
+                    <span>
+                      <i style="display: inline-block; width: 12px; height: 8px; border-radius: 2px; background: var(--azul); margin-right: 4px; vertical-align: middle"></i>
+                      Dependentes
+                    </span>
+                    <span>
+                      <i style="display: inline-block; width: 12px; height: 8px; border-radius: 2px; background: var(--desconformidade-leve); margin-right: 4px; vertical-align: middle"></i>
+                      Em desconformidade
+                    </span>
+                    <span>
+                      <i style="display: inline-block; width: 12px; height: 8px; border-radius: 2px; background: var(--desconformidade); margin-right: 4px; vertical-align: middle"></i>
+                      Exige comprovação (21 anos em diante)
+                    </span>
+                  </p>
+                  <p class="nota">IRRF: a condição termina no ano seguinte ao que o dependente completa 21 anos (24 se universitário). Salário-família: até 14 anos. Deficientes e cônjuges não entram na contagem. Os números medem o cadastro, não o que a folha paga.</p>
                 </div>
               </div>
 
               <div class="card" style="margin-top: 10px">
                 <div class="card-h">
                   <div>
-                    <h2>Alertas de cadastro do SIP</h2>
-                    <p>Situações estruturais que afetam a leitura dos indicadores.</p>
+                    <h2>Outras regras do diagnóstico</h2>
+                    <p>Regras que não entram nos sete cartões, contadas na seleção atual.</p>
                   </div>
                 </div>
                 <div class="card-b">
-                  <div class="alertas">
-                    <div class="alerta"><p class="n">3</p><p class="t">subdivisões com a secretaria dona errada</p><p class="d">007001 → 000008, 008001 → 000009, 002001 → 000003. Afeta 106 vínculos.</p></div>
-                    <div class="alerta"><p class="n">20</p><p class="t">dependentes com IRRF em dois registros ativos</p><p class="d">Em ao menos 2 casos é a mesma pessoa com dois vínculos.</p></div>
-                    <div class="alerta"><p class="n">11</p><p class="t">pessoas com dois vínculos ativos</p><p class="d">Mesmo CPF em dois registros.</p></div>
-                    <div class="alerta"><p class="n">53+</p><p class="t">vínculos em "Local não identificado"</p><p class="d">46 na Saúde e 7 na Fazenda (código 000000).</p></div>
-                    <div class="alerta"><p class="n">5</p><p class="t">dependentes marcados como universitários</p><p class="d">Acima de 21 com IRRF precisa comprovar matrícula.</p></div>
-                    <div class="alerta"><p class="n">4</p><p class="t">vínculos sem status no eSocial</p><p class="d">Os outros 2.459 estão no status 2.</p></div>
+                  <div class="legenda-tipo">
+                    <span><i style="background: #0c326f"></i>Erro</span>
+                    <span><i style="background: #1351b4"></i>Alerta e conferência</span>
+                    <span><i style="background: #5992ed"></i>Recadastro e indicador</span>
                   </div>
+                  <ul class="outras">
+                    <li title="Documentação do dependente entregue há mais de 5 anos — A data de entrega registrada tem mais de 5 anos: o cadastro provavelmente nunca foi revisado."><span class="lb">Documentação do dependente entregue há mais de 5 anos</span><span class="trilho"><i style="width: 100%; background: #5992ed"></i></span><span class="num">863</span></li>
+                    <li title="Sem dependentes em nenhum registro — O servidor não tem dependentes em nenhum registro. Pode ser que não tenha, ou que nunca tenham sido cadastrados."><span class="lb">Sem dependentes em nenhum registro</span><span class="trilho"><i style="width: 97.8%; background: #5992ed"></i></span><span class="num">844</span></li>
+                    <li title="Parentesco 'menor de 21 anos' com 21 anos ou mais — O tipo de parentesco diz 'menor de 21 anos', mas o dependente já tem 21 ou mais."><span class="lb">Parentesco 'menor de 21 anos' com 21 anos ou mais</span><span class="trilho"><i style="width: 68.7%; background: #0c326f"></i></span><span class="num">593</span></li>
+                    <li title="Dependente sem nenhum documento — O dependente só tem nome e nascimento: sem CPF, sem RG, sem outro documento e sem dados de certidão."><span class="lb">Dependente sem nenhum documento</span><span class="trilho"><i style="width: 29.4%; background: #0c326f"></i></span><span class="num">254</span></li>
+                    <li title="Sem dependentes no vínculo ativo, com dependentes em outro registro — O vínculo ativo está sem dependentes, mas a pessoa tem dependentes cadastrados em outro registro."><span class="lb">Sem dependentes no vínculo ativo, com dependentes em outro registro</span><span class="trilho"><i style="width: 8.8%; background: #1351b4"></i></span><span class="num">76</span></li>
+                    <li title="Parentesco 'Outros' — O dependente está com o parentesco 'Outros', que não diz qual é a relação."><span class="lb">Parentesco 'Outros'</span><span class="trilho"><i style="width: 3.6%; background: #1351b4"></i></span><span class="num">31</span></li>
+                    <li title="Estado civil solteiro com cônjuge entre os dependentes — O servidor está como Solteiro, mas tem um dependente cadastrado como Cônjuge."><span class="lb">Estado civil solteiro com cônjuge entre os dependentes</span><span class="trilho"><i style="width: 3%; background: #1351b4"></i></span><span class="num">26</span></li>
+                    <li title="CPF com mais de um vínculo ativo — A mesma pessoa tem mais de um vínculo ativo."><span class="lb">CPF com mais de um vínculo ativo</span><span class="trilho"><i style="width: 2.5%; background: #1351b4"></i></span><span class="num">22</span></li>
+                    <li title="Vínculo ativo com data de término vencida — O vínculo está ativo, mas a data de término já passou."><span class="lb">Vínculo ativo com data de término vencida</span><span class="trilho"><i style="width: 1.5%; background: #0c326f"></i></span><span class="num">10</span></li>
+                    <li title="Título de eleitor ausente ou com preenchimento falso — O título de eleitor está vazio ou preenchido só com zeros."><span class="lb">Título de eleitor ausente ou com preenchimento falso</span><span class="trilho"><i style="width: 1.5%; background: #0c326f"></i></span><span class="num">6</span></li>
+                    <li title="CPF de dependente inválido, repetido no servidor ou igual ao do servidor — O CPF do dependente não passa na conferência dos dígitos, repete o de outro dependente ou é o do próprio servidor."><span class="lb">CPF de dependente inválido, repetido no servidor ou igual ao do servidor</span><span class="trilho"><i style="width: 1.5%; background: #0c326f"></i></span><span class="num">6</span></li>
+                    <li title="Idade incoerente com o parentesco — A diferença de idade entre servidor e dependente não combina com o parentesco informado."><span class="lb">Idade incoerente com o parentesco</span><span class="trilho"><i style="width: 1.5%; background: #0c326f"></i></span><span class="num">4</span></li>
+                    <li title="Mais de um cônjuge ou companheiro no mesmo registro — O mesmo registro tem mais de um cônjuge ou companheiro cadastrado."><span class="lb">Mais de um cônjuge ou companheiro no mesmo registro</span><span class="trilho"><i style="width: 1.5%; background: #0c326f"></i></span><span class="num">2</span></li>
+                    <li title="PAI com sexo feminino ou MÃE com sexo masculino — O parentesco é PAI com sexo feminino, ou MÃE com sexo masculino."><span class="lb">PAI com sexo feminino ou MÃE com sexo masculino</span><span class="trilho"><i style="width: 1.5%; background: #0c326f"></i></span><span class="num">2</span></li>
+                    <li title="PIS ausente ou com preenchimento falso — O PIS está vazio ou preenchido só com zeros ou noves."><span class="lb">PIS ausente ou com preenchimento falso</span><span class="trilho"><i style="width: 1.5%; background: #0c326f"></i></span><span class="num">1</span></li>
+                    <li title="Servidor sem nome da mãe — O nome da mãe do servidor não está preenchido."><span class="lb">Servidor sem nome da mãe</span><span class="trilho"><i style="width: 1.5%; background: #0c326f"></i></span><span class="num">1</span></li>
+                  </ul>
                 </div>
               </div>
             </section>
 
-            <!-- ================= TABELA ================= -->
+            <!-- ================= COMPARATIVO ================= -->
             <section class="painel" id="tabela">
-              <div class="tbl-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Secretaria</th>
-                      <th>Vínculos</th>
-                      <th>Dependentes</th>
-                      <th>IRRF idade</th>
-                      <th>Sal.-família</th>
-                      <th>Dep. sem CPF</th>
-                      <th class="crit">Certidão</th>
-                      <th>Sem e-mail</th>
-                      <th>Conf. P5</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>Educação</td><td>1.416</td><td>1.937</td><td>198</td><td>179</td><td>141</td><td class="crit">700</td><td>77</td><td>44,2%</td><td class="abrir">Abrir</td></tr>
-                    <tr><td>Saúde</td><td>532</td><td>594</td><td>127</td><td>143</td><td>100</td><td class="crit">186</td><td>83</td><td>48,8%</td><td class="abrir">Abrir</td></tr>
-                    <tr><td>Assistência Social</td><td>130</td><td>159</td><td>33</td><td>30</td><td>19</td><td class="crit">53</td><td>17</td><td>46,1%</td><td class="abrir">Abrir</td></tr>
-                    <tr><td>Administração</td><td>85</td><td>131</td><td>21</td><td>22</td><td>16</td><td class="crit">43</td><td>12</td><td>36,4%</td><td class="abrir">Abrir</td></tr>
-                    <tr><td>Gabinete</td><td>60</td><td>36</td><td>3</td><td>4</td><td>3</td><td class="crit">12</td><td>2</td><td>76,6%</td><td class="abrir">Abrir</td></tr>
-                    <tr><td>Fazenda</td><td>56</td><td>52</td><td>11</td><td>12</td><td>2</td><td class="crit">14</td><td>0</td><td>55,3%</td><td class="abrir">Abrir</td></tr>
-                    <tr><td>Infraestrutura<span class="tag-lot">subdivisão errada</span></td><td>55</td><td>68</td><td>17</td><td>20</td><td>12</td><td class="crit">27</td><td>5</td><td>—</td><td class="abrir">Abrir</td></tr>
-                    <tr><td>Turismo e Cultura<span class="tag-lot">subdivisão errada</span></td><td>36</td><td>65</td><td>12</td><td>10</td><td>8</td><td class="crit">20</td><td>6</td><td>—</td><td class="abrir">Abrir</td></tr>
-                    <tr><td>Meio Ambiente</td><td>19</td><td>16</td><td>4</td><td>5</td><td>1</td><td class="crit">4</td><td>3</td><td>68,4%</td><td class="abrir">Abrir</td></tr>
-                    <tr><td>Esporte e Lazer</td><td>18</td><td>30</td><td>7</td><td>7</td><td>6</td><td class="crit">6</td><td>8</td><td>38,8%</td><td class="abrir">Abrir</td></tr>
-                    <tr><td>Finanças</td><td>17</td><td>19</td><td>6</td><td>5</td><td>3</td><td class="crit">8</td><td>2</td><td>47,0%</td><td class="abrir">Abrir</td></tr>
-                    <tr><td>Assuntos Estratégicos<span class="tag-lot">subdivisão errada</span></td><td>15</td><td>18</td><td>5</td><td>3</td><td>4</td><td class="crit">5</td><td>0</td><td>—</td><td class="abrir">Abrir</td></tr>
-                    <tr><td>Agricultura</td><td>12</td><td>14</td><td>2</td><td>2</td><td>1</td><td class="crit">3</td><td>1</td><td>58,3%</td><td class="abrir">Abrir</td></tr>
-                    <tr><td>Planejamento</td><td>12</td><td>7</td><td>1</td><td>1</td><td>1</td><td class="crit">2</td><td>2</td><td>83,3%</td><td class="abrir">Abrir</td></tr>
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td>Total (14 secretarias)</td>
-                      <td>2.463</td>
-                      <td>3.146</td>
-                      <td>447</td>
-                      <td>443</td>
-                      <td>317</td>
-                      <td style="color: #b42318">1.083</td>
-                      <td>218</td>
-                      <td></td>
-                      <td></td>
-                    </tr>
-                  </tfoot>
-                </table>
+              <h2 class="painel-titulo">Comparativo entre secretarias</h2>
+
+              <div class="comparativo">
+                <button class="previa" id="previa-sec" type="button">
+                  Ver exemplo com uma secretaria selecionada
+                </button>
+
+                <!-- Os dois gráficos dividem a linha. Com o card da esquerda
+                     oculto ("Toda a Prefeitura"), a composição ocupa tudo. -->
+                <div class="comparativo-grade uma-coluna" id="grade-comparativo">
+
+                <!-- Só existe com secretaria no filtro; com "Toda a Prefeitura"
+                     o app esconde o card. No mock ele começa escondido. -->
+                <div class="card oculto" id="card-comparativo-sec">
+                  <div class="card-h">
+                    <div>
+                      <h2>Educação × média da Prefeitura</h2>
+                      <p>Percentual dos vínculos. Nas pendências de dependentes, conta o vínculo com pelo menos um dependente na pendência. Referência: casos ÷ vínculos de toda a Prefeitura.</p>
+                    </div>
+                  </div>
+                  <div class="card-b">
+                    <svg viewBox="0 0 380 300" style="width: 100%; height: auto; display: block" role="img" aria-label="Percentual de vínculos com cada pendência na Educação comparado com a Prefeitura">
+                      <!-- grade horizontal: colunas, então as linhas de valor -->
+                      <g stroke="#dce3ec" stroke-dasharray="3 4">
+                        <line x1="30" y1="8" x2="372" y2="8" />
+                        <line x1="30" y1="44.4" x2="372" y2="44.4" />
+                        <line x1="30" y1="80.8" x2="372" y2="80.8" />
+                        <line x1="30" y1="117.2" x2="372" y2="117.2" />
+                        <line x1="30" y1="153.6" x2="372" y2="153.6" />
+                      </g>
+                      <line x1="30" y1="190" x2="372" y2="190" stroke="#c9d3e1" />
+
+                      <!-- secretaria: azul (colunas 20% mais largas: 19,2) -->
+                      <g fill="#1351b4">
+                        <rect x="34.23" y="10.2" width="19.2" height="179.8" rx="2" />
+                        <rect x="83.09" y="153.6" width="19.2" height="36.4" rx="2" />
+                        <rect x="131.95" y="188.5" width="19.2" height="1.5" rx="2" />
+                        <rect x="180.81" y="139.04" width="19.2" height="50.96" rx="2" />
+                        <rect x="229.67" y="144.14" width="19.2" height="45.86" rx="2" />
+                        <rect x="278.53" y="170.34" width="19.2" height="19.66" rx="2" />
+                        <rect x="327.39" y="186.72" width="19.2" height="3.28" rx="2" />
+                      </g>
+
+                      <!-- Prefeitura: cinza -->
+                      <g fill="#6c757d">
+                        <rect x="55.43" y="29.8" width="19.2" height="160.2" rx="2" />
+                        <rect x="104.29" y="143.04" width="19.2" height="46.96" rx="2" />
+                        <rect x="153.15" y="188.5" width="19.2" height="1.5" rx="2" />
+                        <rect x="202.01" y="123.75" width="19.2" height="66.25" rx="2" />
+                        <rect x="250.87" y="124.48" width="19.2" height="65.52" rx="2" />
+                        <rect x="299.73" y="157.6" width="19.2" height="32.4" rx="2" />
+                        <rect x="348.59" y="180.9" width="19.2" height="9.1" rx="2" />
+                      </g>
+
+                      <!-- rótulos inclinados: laranja só em quem está acima -->
+                      <g font-size="8.5" font-family="inherit" text-anchor="end" fill="#56637a">
+                        <text x="54.43" y="196" transform="rotate(-45 54.43 196)" fill="#e0731f" font-weight="700">Sem certidão</text>
+                        <text x="103.29" y="196" transform="rotate(-45 103.29 196)">Sem CPF</text>
+                        <text x="152.15" y="196" transform="rotate(-45 152.15 196)">Sem data de nascimento</text>
+                        <text x="201.01" y="196" transform="rotate(-45 201.01 196)">IRRF fora da idade</text>
+                        <text x="249.87" y="196" transform="rotate(-45 249.87 196)">Salário-família fora da idade</text>
+                        <text x="298.73" y="196" transform="rotate(-45 298.73 196)">Sem e-mail</text>
+                        <text x="347.59" y="196" transform="rotate(-45 347.59 196)">Sem celular</text>
+                      </g>
+
+                      <!-- eixo de valores -->
+                      <g font-size="8" font-family="inherit" fill="#56637a" text-anchor="end">
+                        <text x="26" y="193.5">0%</text>
+                        <text x="26" y="157.1">10%</text>
+                        <text x="26" y="120.7">20%</text>
+                        <text x="26" y="84.3">30%</text>
+                        <text x="26" y="47.9">40%</text>
+                        <text x="26" y="11.5">50%</text>
+                      </g>
+                    </svg>
+
+                    <ul class="legenda-comp">
+                      <li><i style="background: #1351b4"></i>Secretaria</li>
+                      <li><i style="background: #6c757d"></i>Prefeitura</li>
+                      <li><i class="laranja">Aa</i>acima da Prefeitura</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-h">
+                    <div>
+                      <h2>Composição das pendências por secretaria</h2>
+                      <p>Cada coluna soma 100% dos casos da secretaria. Ordenadas pelo total de casos, que aparece no topo.</p>
+                    </div>
+                  </div>
+                  <div class="card-b">
+                    <div class="comp-colunas">
+                      <div class="comp-col"><span class="comp-total">1.310</span><div class="comp-pilha"><span style="height: 53.3%; background: #0c326f"></span><span style="height: 10.8%; background: #5b8def"></span><span style="height: 0.2%; background: #16407f"></span><span style="height: 15.1%; background: #9fc0f5"></span><span style="height: 13.7%; background: #2e63c8"></span><span style="height: 5.9%; background: #6c757d"></span><span style="height: 1%; background: #b3bdc9"></span></div><span class="comp-nome">Educação</span></div>
+                      <div class="comp-col"><span class="comp-total">672</span><div class="comp-pilha"><span style="height: 27.6%; background: #0c326f"></span><span style="height: 14.9%; background: #5b8def"></span><span style="height: 0.3%; background: #16407f"></span><span style="height: 18.9%; background: #9fc0f5"></span><span style="height: 21.3%; background: #2e63c8"></span><span style="height: 12.4%; background: #6c757d"></span><span style="height: 4.6%; background: #b3bdc9"></span></div><span class="comp-nome">Saúde</span></div>
+                      <div class="comp-col"><span class="comp-total">156</span><div class="comp-pilha"><span style="height: 33.9%; background: #0c326f"></span><span style="height: 12.2%; background: #5b8def"></span><span style="height: 0%; background: #16407f"></span><span style="height: 21.2%; background: #9fc0f5"></span><span style="height: 19.2%; background: #2e63c8"></span><span style="height: 10.9%; background: #6c757d"></span><span style="height: 2.6%; background: #b3bdc9"></span></div><span class="comp-nome">Assistência Social</span></div>
+                      <div class="comp-col"><span class="comp-total">119</span><div class="comp-pilha"><span style="height: 36.2%; background: #0c326f"></span><span style="height: 13.4%; background: #5b8def"></span><span style="height: 0%; background: #16407f"></span><span style="height: 17.6%; background: #9fc0f5"></span><span style="height: 18.5%; background: #2e63c8"></span><span style="height: 10.1%; background: #6c757d"></span><span style="height: 4.2%; background: #b3bdc9"></span></div><span class="comp-nome">Administração</span></div>
+                      <div class="comp-col"><span class="comp-total">83</span><div class="comp-pilha"><span style="height: 32.5%; background: #0c326f"></span><span style="height: 14.5%; background: #5b8def"></span><span style="height: 0%; background: #16407f"></span><span style="height: 20.5%; background: #9fc0f5"></span><span style="height: 24.1%; background: #2e63c8"></span><span style="height: 6%; background: #6c757d"></span><span style="height: 2.4%; background: #b3bdc9"></span></div><span class="comp-nome">Infraestrutura</span></div>
+                      <div class="comp-col"><span class="comp-total">59</span><div class="comp-pilha"><span style="height: 33.9%; background: #0c326f"></span><span style="height: 13.6%; background: #5b8def"></span><span style="height: 0%; background: #16407f"></span><span style="height: 20.3%; background: #9fc0f5"></span><span style="height: 16.9%; background: #2e63c8"></span><span style="height: 10.2%; background: #6c757d"></span><span style="height: 5.1%; background: #b3bdc9"></span></div><span class="comp-nome">Turismo e Cultura</span></div>
+                      <div class="comp-col"><span class="comp-total">41</span><div class="comp-pilha"><span style="height: 34.2%; background: #0c326f"></span><span style="height: 4.9%; background: #5b8def"></span><span style="height: 2.4%; background: #16407f"></span><span style="height: 26.8%; background: #9fc0f5"></span><span style="height: 29.3%; background: #2e63c8"></span><span style="height: 0%; background: #6c757d"></span><span style="height: 2.4%; background: #b3bdc9"></span></div><span class="comp-nome">Fazenda</span></div>
+                      <div class="comp-col"><span class="comp-total">35</span><div class="comp-pilha"><span style="height: 17.1%; background: #0c326f"></span><span style="height: 17.1%; background: #5b8def"></span><span style="height: 0%; background: #16407f"></span><span style="height: 20%; background: #9fc0f5"></span><span style="height: 20%; background: #2e63c8"></span><span style="height: 22.9%; background: #6c757d"></span><span style="height: 2.9%; background: #b3bdc9"></span></div><span class="comp-nome">Esporte e Lazer</span></div>
+                      <div class="comp-col"><span class="comp-total">25</span><div class="comp-pilha"><span style="height: 32%; background: #0c326f"></span><span style="height: 12%; background: #5b8def"></span><span style="height: 0%; background: #16407f"></span><span style="height: 24%; background: #9fc0f5"></span><span style="height: 20%; background: #2e63c8"></span><span style="height: 8%; background: #6c757d"></span><span style="height: 4%; background: #b3bdc9"></span></div><span class="comp-nome">Finanças</span></div>
+                      <div class="comp-col"><span class="comp-total">24</span><div class="comp-pilha"><span style="height: 50%; background: #0c326f"></span><span style="height: 12.5%; background: #5b8def"></span><span style="height: 0%; background: #16407f"></span><span style="height: 12.5%; background: #9fc0f5"></span><span style="height: 16.7%; background: #2e63c8"></span><span style="height: 8.3%; background: #6c757d"></span><span style="height: 0%; background: #b3bdc9"></span></div><span class="comp-nome">Gabinete</span></div>
+                      <div class="comp-col"><span class="comp-total">17</span><div class="comp-pilha"><span style="height: 23.6%; background: #0c326f"></span><span style="height: 5.9%; background: #5b8def"></span><span style="height: 0%; background: #16407f"></span><span style="height: 23.5%; background: #9fc0f5"></span><span style="height: 29.4%; background: #2e63c8"></span><span style="height: 17.6%; background: #6c757d"></span><span style="height: 0%; background: #b3bdc9"></span></div><span class="comp-nome">Meio Ambiente</span></div>
+                      <div class="comp-col"><span class="comp-total">17</span><div class="comp-pilha"><span style="height: 29.5%; background: #0c326f"></span><span style="height: 23.5%; background: #5b8def"></span><span style="height: 0%; background: #16407f"></span><span style="height: 29.4%; background: #9fc0f5"></span><span style="height: 17.6%; background: #2e63c8"></span><span style="height: 0%; background: #6c757d"></span><span style="height: 0%; background: #b3bdc9"></span></div><span class="comp-nome">Assuntos Estratégicos</span></div>
+                      <div class="comp-col"><span class="comp-total">9</span><div class="comp-pilha"><span style="height: 33.4%; background: #0c326f"></span><span style="height: 11.1%; background: #5b8def"></span><span style="height: 0%; background: #16407f"></span><span style="height: 22.2%; background: #9fc0f5"></span><span style="height: 22.2%; background: #2e63c8"></span><span style="height: 11.1%; background: #6c757d"></span><span style="height: 0%; background: #b3bdc9"></span></div><span class="comp-nome">Agricultura</span></div>
+                      <div class="comp-col"><span class="comp-total">7</span><div class="comp-pilha"><span style="height: 28.5%; background: #0c326f"></span><span style="height: 14.3%; background: #5b8def"></span><span style="height: 0%; background: #16407f"></span><span style="height: 14.3%; background: #9fc0f5"></span><span style="height: 14.3%; background: #2e63c8"></span><span style="height: 28.6%; background: #6c757d"></span><span style="height: 0%; background: #b3bdc9"></span></div><span class="comp-nome">Planejamento</span></div>
+                    </div>
+
+                    <ul class="legenda-comp">
+                      <li><i style="background: #0c326f"></i>Sem certidão</li>
+                      <li><i style="background: #5b8def"></i>Sem CPF</li>
+                      <li><i style="background: #16407f"></i>Sem data de nascimento</li>
+                      <li><i style="background: #9fc0f5"></i>IRRF fora da idade</li>
+                      <li><i style="background: #2e63c8"></i>Salário-família fora da idade</li>
+                      <li><i style="background: #6c757d"></i>Sem e-mail</li>
+                      <li><i style="background: #b3bdc9"></i>Sem celular</li>
+                    </ul>
+                  </div>
+                </div>
+                </div>
+
+                <!--
+                  A tabela de doze colunas saiu da aba: em 712px de área útil ela
+                  pedia 1.080px e vivia num scroll horizontal próprio. Os números
+                  exatos continuam no tooltip dos dois gráficos.
+                -->
               </div>
             </section>
-
-            <p class="fonte">
-              Fonte: 02_painel_real.sql sobre o SIP_ANALISE_2 (empresa 001, situação 1 e 3). Cada regra
-              conta o vínculo uma vez; um vínculo pode aparecer em mais de uma regra. Nenhum dado
-              pessoal nesta página. Pré-Censo · SIP · atualizado em 17/10/2026 18:40.
-            </p>
-          </div>
         </div>
       </div>
     </div>
@@ -876,6 +1143,23 @@
           trigger.textContent = recolhido ? "»" : "«";
           trigger.title = recolhido ? "Expandir menu" : "Recolher menu";
           trigger.setAttribute("aria-label", trigger.title);
+        });
+      })();
+      // prévia do "secretaria × média da Prefeitura": no app o card só existe
+      // com uma secretaria no filtro, e some em "Toda a Prefeitura".
+      (function () {
+        var botao = document.getElementById("previa-sec");
+        var card = document.getElementById("card-comparativo-sec");
+        var grade = document.getElementById("grade-comparativo");
+        if (!botao || !card || !grade) return;
+        botao.addEventListener("click", function () {
+          var escondido = card.classList.toggle("oculto");
+          // Sem o gráfico da esquerda, a composição ocupa a linha inteira —
+          // é o que o app faz com "Toda a Prefeitura".
+          grade.classList.toggle("uma-coluna", escondido);
+          botao.textContent = escondido
+            ? "Ver exemplo com uma secretaria selecionada"
+            : "Ocultar exemplo (volta para Toda a Prefeitura)";
         });
       })();
     </script>

@@ -14,7 +14,14 @@ import {
 import { ChartTooltip } from "@/components/charts/chart-tooltip";
 import { categoryRevenue } from "@/lib/data";
 
-const palette = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "#c7d2fe"];
+const palette = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+  "var(--chart-6)",
+];
 
 export function CategoryChart() {
   return (

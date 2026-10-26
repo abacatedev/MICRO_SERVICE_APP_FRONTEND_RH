@@ -1,14 +1,24 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronsUpDown, Sparkles, X } from "lucide-react";
+import { ChevronsUpDown, LogOut, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { mainNav, secondaryNav, type NavItem } from "@/lib/nav";
+import { useSessaoRH } from "@/lib/rh/api";
+import { iniciais, rotuloPerfilRH, horaExpira } from "@/lib/rh/perfil";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { LARGURA_ABERTA, LARGURA_FECHADA, useSidebar } from "@/components/ui/sidebar";
 import { MarcaPreCenso } from "@/components/layout/marca";
 
@@ -118,14 +128,7 @@ function SidebarContent({
           ))}
         </div>
 
-        {collapsed ? (
-          <div className="bg-sidebar-border mx-2 my-2.5 h-px" />
-        ) : (
-          <p className="text-muted-foreground px-2.5 pt-5 pb-1.5 text-[10.5px] font-semibold tracking-[0.08em] uppercase">
-            Operação
-          </p>
-        )}
-        <div className="space-y-0.5">
+        <div className={cn("space-y-0.5", collapsed ? "mt-2.5" : "mt-5")}>
           {secondaryNav.map((item) => (
             <NavLink
               key={item.href}
@@ -139,53 +142,90 @@ function SidebarContent({
       </nav>
 
       {/* plano — escondido no modo ícone */}
-      {!collapsed && (
-        <div className="px-3 pb-3">
-          <div className="bg-muted/60 rounded-lg border p-3">
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="text-primary size-3.5" />
-              <p className="text-[12px] font-medium">Plano Pro</p>
-              <span className="text-muted-foreground ml-auto text-[10.5px] tabular">78%</span>
-            </div>
-            <Progress value={78} className="mt-2" />
-            <p className="text-muted-foreground mt-1.5 text-[10.5px] leading-snug">
-              7,8 GB de 10 GB em uso
-            </p>
-          </div>
-        </div>
-      )}
+
 
       <Separator />
 
-      <div
-        className={cn(
-          "flex shrink-0 items-center gap-2.5",
-          collapsed ? "justify-center px-0 py-3" : "px-4 py-3",
-        )}
-      >
-        <span
-          className="bg-primary/12 text-primary flex size-8 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-          title={collapsed ? "Ana Vasques · Administradora" : undefined}
-        >
-          AV
-        </span>
+      <UserSection collapsed={collapsed} />
+    </div>
+  );
+}
+
+function UserSection({ collapsed }: { collapsed: boolean }) {
+  const sessao = useSessaoRH();
+
+  // 401 → redireciona para login (o useRecurso já faz isso, mas garantimos)
+  React.useEffect(() => {
+    if (sessao.status === 401) {
+      window.location.href = `/api/rh/login?retorno=${encodeURIComponent(window.location.pathname)}`;
+    }
+  }, [sessao.status]);
+
+  const nome = sessao.data?.name || sessao.data?.email || "";
+  const perfil = rotuloPerfilRH(sessao.data?.roles?.[0]);
+  const avatar = iniciais(nome || "?");
+  const email = sessao.data?.email ?? "";
+  const expira = sessao.data?.sessao_expira_em;
+
+  if (sessao.isLoading) {
+    return (
+      <div className={cn("flex shrink-0 items-center gap-2.5", collapsed ? "justify-center px-0 py-3" : "px-4 py-3")}>
+        <Skeleton className="size-8 rounded-full" />
         {!collapsed && (
-          <>
-            <div className="min-w-0 flex-1 leading-tight">
-              <p className="truncate text-[12.5px] font-medium">Ana Vasques</p>
-              <p className="text-muted-foreground truncate text-[10.5px]">Administradora</p>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="text-muted-foreground"
-              aria-label="Menu da conta"
-            >
-              <ChevronsUpDown className="size-4" />
-            </Button>
-          </>
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <Skeleton className="h-3.5 w-24" />
+            <Skeleton className="h-3 w-16" />
+          </div>
         )}
       </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "flex shrink-0 items-center gap-2.5",
+        collapsed ? "justify-center px-0 py-3" : "px-4 py-3",
+      )}
+    >
+      <span
+        className="bg-primary/12 text-primary flex size-8 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
+        title={collapsed ? `${nome} · ${perfil}` : undefined}
+      >
+        {avatar}
+      </span>
+      {!collapsed && (
+        <>
+          <div className="min-w-0 flex-1 leading-tight">
+            <p className="truncate text-[12.5px] font-medium">{nome || "—"}</p>
+            <p className="text-muted-foreground truncate text-[10.5px]">{perfil}</p>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon-sm" className="text-muted-foreground" aria-label="Menu da conta">
+                <ChevronsUpDown className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="w-56">
+              <div className="px-2 py-1.5">
+                <p className="text-[12.5px] font-medium">{nome || "—"}</p>
+                <p className="text-muted-foreground text-[11px]">{email}</p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-muted-foreground text-[11px]" disabled>
+                Sessão até {horaExpira(expira)}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <a href={`/api/rh/logout?retorno=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname : "/")}`} className="flex items-center gap-2 text-[12.5px]">
+                  <LogOut className="size-3.5" />
+                  Sair
+                </a>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>
+      )}
     </div>
   );
 }

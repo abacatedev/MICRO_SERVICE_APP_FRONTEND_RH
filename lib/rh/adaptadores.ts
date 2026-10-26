@@ -63,11 +63,25 @@ export const COR_TIPO: Record<TipoRegra, string> = {
 
 const ORDEM_TIPOS: TipoRegra[] = ["erro", "alerta", "recadastro", "conferencia", "indicador"];
 
+/**
+ * O SIP grava o nome da divisão de formas diferentes — "SECRETARIA MUNICIPAL DE
+ * SAUDE", "SECRET. MUNICIPAL DE MEIO AMBIENTE…", "SECRETARIA ESPECIAL DE
+ * ASSUNTOS ESTRATEGICOS" —, então a primeira regra casa a família inteira:
+ * `SECRETARIA`/`SECRET`/`SECR` + ponto opcional, zero ou mais qualificadores
+ * (`MUNICIPAL`/`MUN`/`ESPECIAL`) e `DE` opcional.
+ *
+ * Qualificador é o que diz o **tipo** da divisão, não o que ela faz: por isso
+ * "SECRETARIA ESPECIAL DE ASSUNTOS ESTRATEGICOS" vira "Assuntos Estratégicos",
+ * do mesmo jeito que "SECRETARIA MUNICIPAL DE SAUDE" vira "Saúde".
+ *
+ * Antes a lista exigia "SECRETARIA" por extenso e o nome abreviado passava
+ * inteiro para o eixo: o gráfico mostrava "Secret. Municipal de Meio Ambiente e
+ * Desenvolvimento Econômico" em vez de "Meio Ambiente" (22/10/2026).
+ */
 const PREFIXOS = [
-  /^SECRETARIA MUNICIPAL DE /i,
-  /^SECRETARIA MUNICIPAL /i,
-  /^SECRETARIA DE /i,
-  /^SECRETARIA /i,
+  // O `(?=\S)` exige que sobre alguma coisa: um nome que seja só o prefixo não
+  // pode virar rótulo vazio no eixo.
+  /^(?:SECRETARIA|SECRET|SECR)\.?\s+(?:(?:MUNICIPAL|MUN|ESPECIAL)\.?\s+)*(?:DE\s+)?(?=\S)/i,
   /^FUNDO MUNICIPAL DE /i,
   /^FUNDO MUNICIPAL /i,
   /^FUNDO DE /i,
@@ -83,6 +97,7 @@ const MINUSCULAS = new Set(["de", "da", "do", "das", "dos", "e", "em"]);
  * palavras que aparecem em nome de divisão — não é um corretor ortográfico.
  */
 const ACENTOS: Record<string, string> = {
+  economico: "Econômico",
   educacao: "Educação",
   saude: "Saúde",
   administracao: "Administração",
@@ -106,7 +121,35 @@ const ACENTOS: Record<string, string> = {
   publico: "Público",
   infraestrutura: "Infraestrutura",
   transito: "Trânsito",
+  estrategico: "Estratégico",
+  estrategicos: "Estratégicos",
 };
+
+/**
+ * Rótulos curtos para divisões que o SIP grava por extenso.
+ *
+ * Casa por **palavras**, não pelo nome inteiro: o SIP varia o final do nome
+ * ("…ECONOMICO", "…ECONOMICO E TURISMO", "…ECONOMICO, CULTURA") e uma chave
+ * exata pararia de funcionar na primeira variação. Todas as palavras listadas
+ * precisam aparecer no nome; a ordem não importa.
+ *
+ * Fora daqui, o rótulo é o próprio nome sem o prefixo.
+ */
+const ALIASES: { palavras: string[]; rotulo: string }[] = [
+  { palavras: ["meio", "ambiente", "desenvolvimento"], rotulo: "Meio Ambiente" },
+];
+
+/** Palavras do nome em minúsculas, sem acento e sem pontuação. */
+function palavrasDoNome(texto: string): string[] {
+  return texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(" ")
+    .filter(Boolean);
+}
 
 /**
  * "SECRETARIA MUNICIPAL DE EDUCACAO" → "Educação".
@@ -114,8 +157,17 @@ const ACENTOS: Record<string, string> = {
  * no eixo do gráfico.
  */
 export function nomeCurtoDivisao(nome: string): string {
-  let texto = String(nome ?? "").trim();
+  // Espaço duplo (ou não separável) no meio do nome quebraria os prefixos.
+  let texto = String(nome ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
   for (const prefixo of PREFIXOS) texto = texto.replace(prefixo, "");
+
+  const palavras = palavrasDoNome(texto);
+  const alias = ALIASES.find(({ palavras: exigidas }) =>
+    exigidas.every((palavra) => palavras.includes(palavra)),
+  );
+  if (alias) return alias.rotulo;
 
   return texto
     .toLowerCase()

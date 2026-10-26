@@ -11,3 +11,8 @@ yarn-error.log*
 !.env.example
 next-env.d.ts
 tsconfig.tsbuildinfo
+
+# arquivos locais do WorkBuddy
+node/
+nexo-bi@0.1.0
+lixo.txt

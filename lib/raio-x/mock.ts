@@ -4,7 +4,14 @@
  * Substituir por `useRaioX()` quando o endpoint agregado existir.
  */
 
-import type { Alerta, RaioXData, RegraDef, Secretaria } from "./types";
+import type {
+  Alerta,
+  FaixaDependentes,
+  IndicadorFaixas,
+  RaioXData,
+  RegraDef,
+  Secretaria,
+} from "./types";
 
 export const REGRAS: RegraDef[] = [
   { id: "irrf", label: "IRRF acima da idade", critica: false },
@@ -57,36 +64,154 @@ export const FAIXAS_ETARIAS = [
   "Sem data",
 ] as const;
 
+/**
+ * Fixture do indicador `faixa-dependentes`, só para `NEXT_PUBLIC_RAIO_X_MOCK=true`.
+ *
+ * Fecha com os totais da Prefeitura: 3.150 dependentes e 964 em desconformidade.
+ * `em_desconformidade` é a união de `irrf_fora_do_limite` com
+ * `salario_familia_fora_do_limite`, então nunca é a soma dos dois.
+ */
+const FAIXAS_DEPENDENTES_MOCK: FaixaDependentes[] = [
+  {
+    faixa: "0-13", idade_minima: 0, idade_maxima: 13, exige_comprovacao: false,
+    dependentes: 1315, irrf: 0, salario_familia: 90, universitario: 0, deficiente: 14,
+    irrf_fora_do_limite: 0, salario_familia_fora_do_limite: 0, em_desconformidade: 0,
+  },
+  {
+    faixa: "14-17", idade_minima: 14, idade_maxima: 17, exige_comprovacao: false,
+    dependentes: 620, irrf: 0, salario_familia: 200, universitario: 0, deficiente: 8,
+    irrf_fora_do_limite: 0, salario_familia_fora_do_limite: 180, em_desconformidade: 180,
+  },
+  {
+    faixa: "18-20", idade_minima: 18, idade_maxima: 20, exige_comprovacao: false,
+    dependentes: 380, irrf: 70, salario_familia: 40, universitario: 12, deficiente: 3,
+    irrf_fora_do_limite: 60, salario_familia_fora_do_limite: 0, em_desconformidade: 60,
+  },
+  {
+    faixa: "21-23", idade_minima: 21, idade_maxima: 23, exige_comprovacao: true,
+    dependentes: 290, irrf: 130, salario_familia: 100, universitario: 22, deficiente: 2,
+    irrf_fora_do_limite: 110, salario_familia_fora_do_limite: 100, em_desconformidade: 210,
+  },
+  {
+    faixa: "24-29", idade_minima: 24, idade_maxima: 29, exige_comprovacao: true,
+    dependentes: 240, irrf: 200, salario_familia: 40, universitario: 40, deficiente: 1,
+    irrf_fora_do_limite: 200, salario_familia_fora_do_limite: 30, em_desconformidade: 230,
+  },
+  {
+    faixa: "30-39", idade_minima: 30, idade_maxima: 39, exige_comprovacao: true,
+    dependentes: 180, irrf: 170, salario_familia: 20, universitario: 0, deficiente: 1,
+    irrf_fora_do_limite: 170, salario_familia_fora_do_limite: 20, em_desconformidade: 170,
+  },
+  {
+    faixa: "40+", idade_minima: 40, idade_maxima: null, exige_comprovacao: true,
+    dependentes: 95, irrf: 90, salario_familia: 5, universitario: 0, deficiente: 0,
+    irrf_fora_do_limite: 90, salario_familia_fora_do_limite: 5, em_desconformidade: 90,
+  },
+  {
+    faixa: "Sem data", idade_minima: null, idade_maxima: null, exige_comprovacao: true,
+    dependentes: 30, irrf: 24, salario_familia: 6, universitario: 0, deficiente: 0,
+    irrf_fora_do_limite: 24, salario_familia_fora_do_limite: 6, em_desconformidade: 24,
+  },
+];
+
+export const INDICADOR_FAIXAS_MOCK: IndicadorFaixas = {
+  gerado_em: "2026-10-17T18:40:00+00:00",
+  filtros: { divisao: null, subdivisao: null, vinculo: null },
+  vinculos_com_dependentes: 1580,
+  dependentes: 3150,
+  em_desconformidade: 964,
+  sem_data: 30,
+  faixas: FAIXAS_DEPENDENTES_MOCK,
+};
+
+/**
+ * "Outras regras do diagnóstico": as 16 que não entram nos sete cartões, com as
+ * contagens reais da Prefeitura.
+ *
+ * Sem `tipo` de propósito: a classificação (`erro`, `recadastro`, `indicador`…)
+ * é do backend e o fixture não inventa. Em modo mock as barras saem neutras e a
+ * legenda mostra "Sem classificação" — com a API real as três cores aparecem.
+ */
 export const ALERTAS: Alerta[] = [
   {
-    n: "3",
-    t: "subdivisões com a secretaria dona errada",
-    d: "007001 → 000008, 008001 → 000009, 002001 → 000003. Afeta 106 vínculos.",
+    valor: 863,
+    t: "Documentação do dependente entregue há mais de 5 anos",
+    d: "A data de entrega registrada tem mais de 5 anos: o cadastro provavelmente nunca foi revisado.",
   },
   {
-    n: "20",
-    t: "dependentes com IRRF em dois registros ativos",
-    d: "Em ao menos 2 casos é a mesma pessoa com dois vínculos.",
+    valor: 844,
+    t: "Sem dependentes em nenhum registro",
+    d: "O servidor não tem dependentes em nenhum registro. Pode ser que não tenha, ou que nunca tenham sido cadastrados.",
   },
   {
-    n: "11",
-    t: "pessoas com dois vínculos ativos",
-    d: "Mesmo CPF em dois registros.",
+    valor: 593,
+    t: "Parentesco 'menor de 21 anos' com 21 anos ou mais",
+    d: "O tipo de parentesco diz 'menor de 21 anos', mas o dependente já tem 21 ou mais.",
   },
   {
-    n: "53+",
-    t: 'vínculos em "Local não identificado"',
-    d: "46 na Saúde e 7 na Fazenda (código 000000).",
+    valor: 254,
+    t: "Dependente sem nenhum documento",
+    d: "O dependente só tem nome e nascimento: sem CPF, sem RG, sem outro documento e sem dados de certidão.",
   },
   {
-    n: "5",
-    t: "dependentes marcados como universitários",
-    d: "Acima de 21 com IRRF precisa comprovar matrícula.",
+    valor: 76,
+    t: "Sem dependentes no vínculo ativo, com dependentes em outro registro",
+    d: "O vínculo ativo está sem dependentes, mas a pessoa tem dependentes cadastrados em outro registro.",
   },
   {
-    n: "4",
-    t: "vínculos sem status no eSocial",
-    d: "Os outros 2.459 estão no status 2.",
+    valor: 31,
+    t: "Parentesco 'Outros'",
+    d: "O dependente está com o parentesco 'Outros', que não diz qual é a relação.",
+  },
+  {
+    valor: 26,
+    t: "Estado civil solteiro com cônjuge entre os dependentes",
+    d: "O servidor está como Solteiro, mas tem um dependente cadastrado como Cônjuge.",
+  },
+  {
+    valor: 22,
+    t: "CPF com mais de um vínculo ativo",
+    d: "A mesma pessoa tem mais de um vínculo ativo.",
+  },
+  {
+    valor: 10,
+    t: "Vínculo ativo com data de término vencida",
+    d: "O vínculo está ativo, mas a data de término já passou.",
+  },
+  {
+    valor: 6,
+    t: "Título de eleitor ausente ou com preenchimento falso",
+    d: "O título de eleitor está vazio ou preenchido só com zeros.",
+  },
+  {
+    valor: 6,
+    t: "CPF de dependente inválido, repetido no servidor ou igual ao do servidor",
+    d: "O CPF do dependente não passa na conferência dos dígitos, repete o de outro dependente ou é o do próprio servidor.",
+  },
+  {
+    valor: 4,
+    t: "Idade incoerente com o parentesco",
+    d: "A diferença de idade entre servidor e dependente não combina com o parentesco informado.",
+  },
+  {
+    valor: 2,
+    t: "Mais de um cônjuge ou companheiro no mesmo registro",
+    d: "O mesmo registro tem mais de um cônjuge ou companheiro cadastrado.",
+  },
+  {
+    valor: 2,
+    t: "PAI com sexo feminino ou MÃE com sexo masculino",
+    d: "O parentesco é PAI com sexo feminino, ou MÃE com sexo masculino.",
+  },
+  {
+    valor: 1,
+    t: "PIS ausente ou com preenchimento falso",
+    d: "O PIS está vazio ou preenchido só com zeros ou noves.",
+  },
+  {
+    valor: 1,
+    t: "Servidor sem nome da mãe",
+    d: "O nome da mãe do servidor não está preenchido.",
   },
 ];
 

@@ -1,11 +1,19 @@
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
-import { RX } from "@/lib/raio-x/cores";
 
-/** Card base da tela Raio-X: raio 10px, borda 1px, cabeçalho compacto. */
+/**
+ * Card base da tela Raio-X: raio 10px, borda 1px, cabeçalho compacto.
+ *
+ * Superfície, borda e texto vêm de tokens (`bg-card`, `border-border`,
+ * `text-foreground`), então o card acompanha o tema. Nada de `bg-white`.
+ *
+ * O título é `<h3>`: o `<h2>` de cada aba é o cabeçalho do painel
+ * ("Panorama do quadro de pessoal" etc.), e o card vive dentro dele.
+ */
 export function RxCard({
   titulo,
+  tituloClassName,
   subtitulo,
   acao,
   children,
@@ -14,6 +22,12 @@ export function RxCard({
   rodape,
 }: {
   titulo?: React.ReactNode;
+  /**
+   * Tamanho do título, quando o card pede um cabeçalho maior que os 15px
+   * padrão. Existe para o ajuste ficar no card que pediu, sem mexer no título
+   * de todas as telas.
+   */
+  tituloClassName?: string;
   subtitulo?: React.ReactNode;
   acao?: React.ReactNode;
   children: React.ReactNode;
@@ -23,24 +37,26 @@ export function RxCard({
 }) {
   return (
     <section
-      className={cn("flex flex-col rounded-[10px] border bg-white", className)}
-      style={{ borderColor: RX.borda }}
+      className={cn(
+        "border-border bg-card text-card-foreground flex flex-col rounded-[10px] border",
+        className,
+      )}
     >
       {(titulo || acao) && (
         <header className="flex items-start justify-between gap-3 px-4 pt-3.5">
           <div className="min-w-0">
             {titulo && (
-              <h2
-                className="text-[15px] leading-tight font-semibold tracking-tight"
-                style={{ color: RX.texto }}
+              <h3
+                className={cn(
+                  "text-[15px] leading-tight font-semibold tracking-tight",
+                  tituloClassName,
+                )}
               >
                 {titulo}
-              </h2>
+              </h3>
             )}
             {subtitulo && (
-              <p className="mt-1.5 text-[12px] leading-snug" style={{ color: RX.textoSec }}>
-                {subtitulo}
-              </p>
+              <p className="text-muted-foreground mt-1.5 text-[12px] leading-snug">{subtitulo}</p>
             )}
           </div>
           {acao && <div className="flex shrink-0 items-center gap-1.5">{acao}</div>}
@@ -48,10 +64,7 @@ export function RxCard({
       )}
       <div className={cn("flex flex-1 flex-col px-4 pt-2 pb-3.5", bodyClassName)}>{children}</div>
       {rodape && (
-        <footer
-          className="mt-auto border-t px-4 py-2 text-[11.5px]"
-          style={{ borderColor: RX.borda, color: RX.textoSec }}
-        >
+        <footer className="border-border text-muted-foreground mt-auto border-t px-4 py-2 text-[11.5px]">
           {rodape}
         </footer>
       )}

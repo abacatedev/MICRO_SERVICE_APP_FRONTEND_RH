@@ -17,11 +17,13 @@ o formato do backend; o que sai de lá é o `RaioXData` que os componentes conso
 
 ```
 page.tsx
-  └─ useRaioX({ sec })                              lib/raio-x/api.ts
-       ├─ useSessao()            → GET /api/rh/me
-       ├─ useRaioXRegras()       → GET /api/rh/diagnostico/por-divisao/regras?atualizar=false
-       ├─ useRaioXPerfil()       → GET /api/rh/diagnostico/por-divisao/perfil
-       └─ useDiagnosticoPainel() → GET /api/rh/diagnostico
+  ├─ useRaioX({ sec })                              lib/raio-x/api.ts
+  │    ├─ useSessao()            → GET /api/rh/me
+  │    ├─ useRaioXRegras()       → GET /api/rh/diagnostico/por-divisao/regras?atualizar=false
+  │    ├─ useRaioXPerfil()       → GET /api/rh/diagnostico/por-divisao/perfil
+  │    └─ useDiagnosticoPainel() → GET /api/rh/diagnostico
+  └─ useFaixaDependentes({ divisao, atualizar })
+       └─ GET /api/rh/indicadores/faixa-dependentes?divisao=…&atualizar=true
                     │
                     │  fetch(caminho, { credentials: "include", cache: "no-store" })
                     ▼
@@ -105,6 +107,7 @@ async rewrites() {
 | `/api/rh/diagnostico/por-divisao/regras?atualizar=false` | `http://localhost:8000/rh/diagnostico/por-divisao/regras?atualizar=false` |
 | `/api/rh/diagnostico/por-divisao/perfil` | `http://localhost:8000/rh/diagnostico/por-divisao/perfil` |
 | `/api/rh/diagnostico` | `http://localhost:8000/rh/diagnostico` |
+| `/api/rh/indicadores/faixa-dependentes?divisao=000003` | `http://localhost:8000/rh/indicadores/faixa-dependentes?divisao=000003` |
 
 `/api/rh` **não** é prefixo do backend: o rewrite troca esse trecho por `{BACKEND_URL}/rh`.
 O `rh` aparece duas vezes por coincidência de nomenclatura — um é do proxy, o outro é o
@@ -236,9 +239,15 @@ Todas em `lib/raio-x/api.ts`.
 | # | Rota (pelo proxy) | Hook | Parâmetros | Quem consome |
 |---|---|---|---|---|
 | 1 | `/api/rh/me` | `useSessao` | — | nada diretamente: serve para um 401 chegar cedo e levar ao login |
-| 2 | `/api/rh/diagnostico/por-divisao/regras` | `useRaioXRegras` | `?atualizar=false` (ou `true`) | cards da sidebar, seletor de secretaria, aba Regra em foco, Tabela, totais |
-| 3 | `/api/rh/diagnostico/por-divisao/perfil` | `useRaioXPerfil` | — | aba Quadro: locais, cargos, tipos de vínculo |
-| 4 | `/api/rh/diagnostico` | `useDiagnosticoPainel` | — | aba Qualidade: "Outras regras do diagnóstico" |
+| 2 | `/api/rh/diagnostico/por-divisao/regras` | `useRaioXRegras` | `?atualizar=false` (ou `true`) | cards da sidebar, seletor de secretaria, aba Pendência, Comparativo, totais |
+| 3 | `/api/rh/diagnostico/por-divisao/perfil` | `useRaioXPerfil` | — | aba Panorama: locais, cargos, tipos de vínculo |
+| 4 | `/api/rh/diagnostico` | `useDiagnosticoPainel` | — | aba Inconsistências: "Outras regras do diagnóstico" |
+| 5 | `/api/rh/indicadores/faixa-dependentes` | `useFaixaDependentes` | `divisao`, `subdivisao`, `vinculo`, `atualizar=true` — só os preenchidos | aba Inconsistências: gráfico "Faixa etária dos dependentes em desconformidade" |
+
+O indicador de faixas fica **fora** de `useRaioX` de propósito: ele tem carregamento e erro
+próprios, dentro do card, e não pode segurar o esqueleto da tela inteira. O front hoje só tem o
+filtro de secretaria, então só `divisao` é enviado; `subdivisao` e `vinculo` já estão no caminho
+para quando a seleção ganhar esses níveis.
 
 Observações:
 
@@ -283,7 +292,7 @@ tranquilamente no payload, e todo o recorte é feito em memória.
 | `curto` | `nome` | `nomeCurto(codigo, nome)`; `"ALL"` vira `"Toda a Prefeitura"` |
 | `vinc` | `vinculos` | `num()` |
 | `deps` | `dependentes` | `num()` |
-| `confP5` | `conformidade` | `num()` — a tabela mostra "Conformidade P5" com este valor |
+| `confP5` | `conformidade` | `num()` — era a coluna "% conforme" da tabela do Comparativo, que saiu da tela em 25/10/2026; o campo continua no contrato |
 | `irrf`, `salfam`, `depCpf`, `depNasc`, `cert`, `semEmail`, `semFone` | `cartoes[id]` | laço sobre os cartões que a API mandou |
 | `lotSetor` | — | **`0` fixo**: a API não expõe "subdivisão errada" por divisão |
 
@@ -303,7 +312,7 @@ desenhar.
 > Não confunda os dois mapas da API:
 > `cartoes` é indexado por **id de cartão** (`cert`, `irrf`…) e é o que a tela usa;
 > `regras` é indexado por **código de regra** (`D01`, `S02`…) e só serve para descobrir
-> quais regras já estão dentro de um cartão (aba Qualidade) e para o recorte por divisão.
+> quais regras já estão dentro de um cartão (aba Inconsistências) e para o recorte por divisão.
 > Um cartão agrupa várias regras — daí a diferença de granularidade.
 
 ### `Cartao` → `RegraDef`
@@ -363,11 +372,23 @@ Confundir estas duas listas é a origem da maioria dos erros de leitura da tela.
 | Ranking | `rankingCasos` | top 7 por valor absoluto |
 | Fatias dos donuts | `fatiasSecretarias`, `fatiasLocais`, `cargosDaSelecao` | top N + "Demais" |
 | Categorias da Qualidade | `categoriasQualidade` | agrupa as sete regras em 5 categorias |
+| Fatias por regra | `fatiasPorRegra` | uma fatia por regra, agrupada em 3 categorias, a partir da linha `ALL` |
+| Outras regras | `adaptarOutrasRegras` | as que não estão em cartão, com `valor` e o `tipo` que o backend classificou |
 
-Detalhe que costuma surpreender: **o tracejado de média é sempre a Prefeitura**, mesmo com
-uma secretaria selecionada. Com Educação selecionada, `mediaDoTotal` devolve
-`610 / 2463 = 24,8%`, e não `374 / 1416 = 26,4%`. É intencional — a linha serve de
-referência externa para comparar a secretaria.
+Detalhe que costuma surpreender: **a média é sempre a da Prefeitura**, mesmo com uma secretaria
+selecionada. Com Educação selecionada, `mediaDoTotal` devolve `610 / 2463 = 24,8%`, e não
+`374 / 1416 = 26,4%`.
+
+Desde 22/10/2026 ela volta a pintar, mas **sem sair da paleta**: o gráfico A usa duas cores —
+`GRAFICO.escuro` para quem está acima da referência e `GRAFICO.principal` para o resto, com
+legenda logo abaixo do gráfico dizendo o valor da referência. A terceira cor
+(`GRAFICO.claro`) marca a secretaria selecionada. O campo `acima` de `seriePorSecretaria` é
+exatamente esse `valor > media`. Continua valendo: nada de laranja/vermelho nas séries.
+
+O donut **"De que regra vêm os apontamentos"** é a exceção de escopo da aba Inconsistências: ele lê
+`data.total` (a linha `ALL`), não `alvo`. Por isso não se move quando se escolhe uma secretaria, e
+o total dele (2.499 apontamentos) é o do backend, que conta cada vínculo uma vez — a soma das
+divisões pode dar outro número. As outras três leituras da aba seguem a seleção.
 
 ---
 
@@ -384,19 +405,19 @@ GET /rh/diagnostico/por-divisao/regras?atualizar=false
           secretaria["cert"] = num(610) ........... Secretaria.cert = 610
   → useRaioX.data.total
   → page.tsx:  estado.sec === "ALL" ? data.total : totaisDe(alvo)
-  → <SidebarFiltros valores={totais} />
+  → <PainelPendencias valores={totais} />      (só na aba Pendência)
   → <RegraCard valor={valores["cert"]} />
   → fmtNum(610) ................................... "610"
 ```
 
-E o mesmo par de números produz a média do gráfico:
+E o mesmo par de números produz a referência da Prefeitura (a linha da legenda do gráfico A):
 
 ```
 mediaDoTotal(data.total, "cert") = pct(610, 2463) = 24,76 → fmtPct → "24,8%"
 ```
 
 Com Educação selecionada (`sec = "000006"`), o mesmo cartão vira `374` porque o adaptador
-leu `divisoes[].cartoes.cert` daquela linha — e o tracejado continua em `24,8%`.
+leu `divisoes[].cartoes.cert` daquela linha — e a média segue em `24,8%`.
 
 Nenhum passo desse caminho usa `mock.ts`. O mock só entra com
 `NEXT_PUBLIC_RAIO_X_MOCK=true`, e nesse caso **não há requisição nenhuma**: todos os hooks
@@ -409,6 +430,11 @@ recebem `ativo = false` e `useRaioX` devolve `RAIO_X_MOCK` direto.
 Ele não recarrega a página: pede ao backend que **recalcule** o diagnóstico, que é uma
 operação cara e por isso fica em cache no servidor.
 
+O botão é só ícone e mora na **topbar, à esquerda do sino** — não no rodapé da tela. Como a
+topbar é renderizada pelo `AppShell`, fora da árvore da página, a ligação passa por um contexto
+(`components/layout/atualizacao.tsx`): a página registra a ação com `useRegistrarAtualizacao` e a
+topbar desenha o botão apenas quando há registro. Tela sem recálculo não ganha botão morto.
+
 ```
 clique
   → atualizar()
@@ -417,8 +443,8 @@ clique
       painel.refetch()
   → useRaioXRegras roda de novo com ?atualizar=true
   → durante a espera: atualizando = regras.isLoading && versao > 0
-  → rótulo vira "Atualizando…" e o ícone gira
-  → ao voltar, gerado_em novo aparece no rodapé
+  → o ícone gira e o botão fica desabilitado
+  → ao voltar, o novo gerado_em já vem nos dados da tela
 ```
 
 Detalhes:
@@ -467,9 +493,8 @@ Detalhes:
    Não escrever `fetch` novo.
 3. Criar a função `adaptar*` em `adaptadores.ts` e um caso em `adaptadores.test.ts` com uma
    fixture em `__fixtures__/`.
-4. Se o dado novo alimenta um bloco que hoje é `0` fixo (`lotSetor`, `pisFicticio`,
-   `faixaDependentes`), preencher no `useMemo` de `useRaioX` e remover o comentário de
-   "a API não expõe".
+4. Se o dado novo alimenta um bloco que hoje é `0` fixo (`lotSetor`, `pisFicticio`), preencher
+   no `useMemo` de `useRaioX` e remover o comentário de "a API não expõe".
 5. Adicionar a linha na tabela do §3 deste documento e no `raio-x-backend.md`.
 
 O que **não** fazer: chamar o backend de dentro de um componente, guardar o JSON da API em

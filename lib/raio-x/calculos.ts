@@ -3,12 +3,13 @@
  * Todas as funções recebem a lista já filtrada — fáceis de testar.
  */
 
-import { RX, corDaFatia } from "./cores";
-import { REGRAS_CONHECIDAS } from "./regras";
+import { GX, RX, corDaFatia } from "./cores";
+import { ORDEM_CARDS, REGRAS_CONHECIDAS, ROTULO_CARD } from "./regras";
 import type {
   Alerta,
   CategoriaQualidade,
   Fatia,
+  FatiaRegraComCod,
   FiltroState,
   MinVinc,
   RankingItem,
@@ -273,7 +274,67 @@ export function fatiasTipoVinculo(tipo: [string, number][]): Fatia[] {  return t
   }));
 }
 
-/** Aba Qualidade: 5 categorias de inconsistência. */
+/**
+ * Categorias da aba Inconsistências que têm regras de cartão por trás, na mesma ordem
+ * do gráfico de colunas.
+ *
+ * `Lotação` e `Servidor` não aparecem aqui: não são regra de cartão e a API
+ * ainda não devolve contagem para elas.
+ */
+const GRUPOS_QUALIDADE: { categoria: string; regras: RegraId[] }[] = [
+  { categoria: "Dependentes", regras: ["irrf", "salfam", "depCpf", "depNasc"] },
+  { categoria: "Documentação", regras: ["cert"] },
+  { categoria: "Contato", regras: ["semEmail", "semFone"] },
+];
+
+/** Uma cor por categoria, três tons da mesma rampa — nunca matiz avulso. */
+const CORES_QUALIDADE: Record<string, string> = {
+  Dependentes: GX.principal,
+  "Documentação": GX.escuro,
+  Contato: GX.claro,
+};
+
+/**
+ * Donut "De que regra vêm os apontamentos": uma fatia por regra, agrupada por
+ * categoria.
+ *
+ * A cor identifica a **categoria** e a legenda imprime o nome dela em cada
+ * grupo, então a cor nunca é a única portadora do significado. Dentro do grupo
+ * quem separa as fatias é o vão do `Donut`; o que distingue uma regra da outra
+ * é a ordem (a mesma da legenda) e o tooltip.
+ *
+ * Recebe uma única `Secretaria` — a linha `ALL` para a Prefeitura — e não uma
+ * lista, porque a soma das divisões pode divergir do total: o backend conta cada
+ * vínculo uma vez no `ALL`.
+ */
+export function fatiasPorRegra(origem: Secretaria, cartoes?: RegraDef[]): FatiaRegraComCod[] {
+  return GRUPOS_QUALIDADE.flatMap(({ categoria, regras }) =>
+    regras
+      .map((id) => ({
+        // `cod` é o id da regra (não o da secretaria): é o que a legenda usa para
+        // abrir a aba Pendência com aquela pendência selecionada.
+        cod: id,
+        label: rotuloRegra(id, cartoes),
+        categoria,
+        detalhe: categoria,
+        value: origem[id],
+        color: CORES_QUALIDADE[categoria],
+      }))
+      .sort((a, b) => b.value - a.value),
+  );
+}
+
+/**
+ * Aba Qualidade: 5 categorias de inconsistência.
+ *
+ * Todas usam o azul principal. Antes cada uma tinha um matiz próprio e
+ * "Documentação" era `RX.critico` — cinco cores arbitrárias para o mesmo tipo
+ * de número, com uma delas insinuando severidade que o dado não tem. Quem
+ * identifica a categoria é o rótulo.
+ *
+ * As três primeiras são as mesmas de `GRUPOS_QUALIDADE`: mudou uma regra de
+ * categoria, mude nos dois lugares.
+ */
 export function categoriasQualidade(
   alvo: Secretaria[],
   pisFicticio: Record<string, number>,
@@ -290,25 +351,30 @@ export function categoriasQualidade(
       label: "Documentação",
       detalhe: "Certidão incompleta",
       value: t.cert,
-      color: RX.critico,
+      color: RX.azul,
     },
     {
       label: "Contato",
       detalhe: "Servidor sem e-mail ou telefone",
       value: t.semEmail + t.semFone,
-      color: RX.verde,
+      color: RX.azul,
     },
     {
       label: "Lotação",
       detalhe: "Subdivisão errada",
       value: totalLotacao(alvo),
-      color: RX.ouro,
+      color: RX.azul,
+      // `LinhaDivisao` não traz `lot_setor`: o total é sempre 0 por falta de
+      // dado, não por falta de ocorrência.
+      semContagem: true,
     },
     {
       label: "Servidor",
       detalhe: "PIS ausente ou fictício",
       value: totalPisFicticio(alvo, pisFicticio),
-      color: RX.roxo,
+      color: RX.azul,
+      // A API ainda não devolve contagem de PIS por divisão.
+      semContagem: true,
     },
   ];
 }
@@ -330,7 +396,113 @@ export function regraCritica(regra: RegraId, cartoes?: RegraDef[]): boolean {
   return cartoes?.find((c) => c.id === regra)?.critica ?? false;
 }
 
-/** Cor de destaque da regra em foco. */
-export function corDaRegra(regra: RegraId, cartoes?: RegraDef[]): string {
-  return regraCritica(regra, cartoes) ? RX.critico : RX.azul;
+/* ------------------------------------------------------------------ */
+/* Comparativo entre secretarias                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Uma linha do gráfico "Secretaria × média da Prefeitura".
+ *
+ * `secretaria` e `prefeitura` são percentuais de **vínculos**, não contagens:
+ * é o que deixa uma secretaria de 12 vínculos comparável com uma de 1.416.
+ */
+export interface ComparacaoRegra {
+  regra: RegraId;
+  /** Nome curto do card — o mesmo da tabela e da legenda. */
+  rotulo: string;
+  secretaria: number;
+  prefeitura: number;
+  /** `true` quando a secretaria passa da Prefeitura — é o que pinta o rótulo. */
+  acima: boolean;
 }
+
+/**
+ * Sete pendências da secretaria selecionada contra a Prefeitura.
+ *
+ * A referência é `mediaDoTotal(total, regra)` — casos ÷ vínculos de **toda a
+ * Prefeitura**, a partir da linha `ALL` da API. Não é a média aritmética dos
+ * percentuais das secretarias: essa daria o mesmo peso a Planejamento (12
+ * vínculos) e a Educação (1.416) e mudaria conforme o filtro "Mostrar
+ * secretarias com".
+ *
+ * O denominador é `vinc` nas sete: a API conta vínculos distintos por cartão,
+ * então nas pendências de dependentes o número já é "vínculos com pelo menos um
+ * dependente naquela pendência", e não a soma de dependentes.
+ */
+export function comparacaoComPrefeitura(
+  sec: Secretaria,
+  total: Secretaria,
+): ComparacaoRegra[] {
+  return ORDEM_CARDS.map((regra) => {
+    const daSecretaria = pct(sec[regra], sec.vinc);
+    const daPrefeitura = mediaDoTotal(total, regra);
+    return {
+      regra,
+      rotulo: ROTULO_CARD[regra],
+      secretaria: daSecretaria,
+      prefeitura: daPrefeitura,
+      acima: daSecretaria > daPrefeitura,
+    };
+  });
+}
+
+/**
+ * Uma linha do gráfico "Composição das pendências por secretaria".
+ *
+ * `total` é a soma dos casos das sete pendências e cada chave de regra é a
+ * participação daquela pendência nesse total, em % — por isso cada barra soma
+ * 100. As chaves de regra são dinâmicas (`[regra]`), então o tipo carrega um
+ * índice; quem desenha lê por `dataKey`.
+ */
+export interface LinhaComposicao {
+  cod: string;
+  curto: string;
+  total: number;
+  [regra: string]: string | number;
+}
+
+/**
+ * Composição das pendências por secretaria, da maior para a menor em total de
+ * casos.
+ *
+ * `apontamentosTotais` soma as sete regras: um vínculo pode aparecer em mais de
+ * uma pendência, e aqui isso é o esperado — a barra mede o **estoque de casos**,
+ * não vínculos distintos.
+ */
+export function composicaoPorSecretaria(lista: Secretaria[]): LinhaComposicao[] {
+  return lista
+    .map((s) => {
+      const total = apontamentosTotais(s);
+      const linha: LinhaComposicao = { cod: s.cod, curto: s.curto, total };
+      for (const regra of ORDEM_CARDS) {
+        linha[regra] = total ? pct(s[regra], total) : 0;
+      }
+      return linha;
+    })
+    .sort((a, b) => b.total - a.total);
+}
+
+/**
+ * Escala do eixo de percentual do gráfico agrupado.
+ *
+ * Escolhe um passo "redondo" que caiba em no máximo 6 intervalos e arredonda o
+ * topo para cima nele. Sem isso o Recharts divide o domínio em frações e o eixo
+ * imprime "13,75%", ou o maior valor encosta na borda e sai cortado.
+ *
+ * O piso de 5 mantém uma escala visível quando a secretaria não tem nenhum caso.
+ */
+export function eixoDePercentual(valores: number[]): { topo: number; ticks: number[] } {
+  const maior = valores.reduce((acc, valor) => (valor > acc ? valor : acc), 0);
+  const passo = [5, 10, 20, 25, 50].find((candidato) => maior <= candidato * 5) ?? 50;
+  const topo = Math.max(passo, Math.ceil(maior / passo) * passo);
+
+  const ticks: number[] = [];
+  for (let valor = 0; valor <= topo; valor += passo) ticks.push(valor);
+  return { topo, ticks };
+}
+
+/*
+ * Não existe mais `corDaRegra`: ela devolvia vermelho quando a regra era
+ * crítica, e a paleta definitiva dos gráficos (21/10/2026) tirou o vermelho
+ * das séries. Cor de série agora vem de `GRAFICO` em `lib/paleta.ts`.
+ */

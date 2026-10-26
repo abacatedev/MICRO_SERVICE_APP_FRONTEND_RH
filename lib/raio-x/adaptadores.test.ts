@@ -133,7 +133,7 @@ describe("nomes curtos", () => {
   });
 });
 
-describe("perfil (aba Quadro)", () => {
+describe("perfil (aba Panorama)", () => {
   it("converte os itens em tuplas por divisão", () => {
     const adaptado = adaptarPerfil(perfil);
     expect(adaptado.locais["000006"]).toEqual([
@@ -170,20 +170,27 @@ describe("perfil (aba Quadro)", () => {
   });
 });
 
-describe("outras regras (aba Qualidade)", () => {
+describe("outras regras (aba Inconsistências)", () => {
   it("exclui as regras que já estão em cartões e as sem servidores", () => {
     const alertas = adaptarOutrasRegras(diagnostico, regras.cartoes);
     expect(alertas.map((a) => a.t)).toEqual([
       "Dependente com CPF inválido",
       "Servidor sem PIS",
     ]);
-    expect(alertas[0].n).toBe("27");
+    expect(alertas[0].valor).toBe(27);
+  });
+
+  // O `tipo` é o que separa erro de recadastro e de constatação no gráfico de
+  // barras; se o adapter parar de repassá-lo, as barras ficam todas neutras.
+  it("repassa o tipo que o backend classificou", () => {
+    const alertas = adaptarOutrasRegras(diagnostico, regras.cartoes);
+    expect(alertas.map((a) => a.tipo)).toEqual(["erro", "alerta"]);
   });
 
   it("usa o número da divisão quando ela é a selecionada", () => {
     const educacao = regras.divisoes[0];
     const alertas = adaptarOutrasRegras(diagnostico, regras.cartoes, educacao);
-    expect(alertas[0].n).toBe("27");
+    expect(alertas[0].valor).toBe(27);
   });
 
   it("esconde a regra que está zerada na divisão selecionada", () => {

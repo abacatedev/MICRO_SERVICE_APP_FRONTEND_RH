@@ -10,7 +10,6 @@
  * - os cartões (ordem, título, crítica) vêm de `cartoes`.
  */
 
-import { fmtNum } from "./calculos";
 import { nomeCurto } from "./nomes";
 import { REGRAS_RESERVA, ehRegraConhecida } from "./regras";
 import type {
@@ -165,9 +164,12 @@ export function adaptarOutrasRegras(
     })
     .filter(({ quantidade }) => quantidade > 0)
     .map(({ regra, quantidade }) => ({
-      n: fmtNum(quantidade),
       t: regra.titulo?.trim() || regra.codigo,
       d: regra.descricao?.trim() || "",
+      valor: quantidade,
+      // `tipo` vem do backend e é o que separa erro de recadastro e de
+      // constatação. Sem ele a barra sai neutra — nunca chutamos severidade.
+      tipo: regra.tipo,
     }))
     .filter((alerta) => alerta.t !== "");
 }

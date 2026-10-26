@@ -12,7 +12,7 @@
 
 import * as React from "react";
 
-import { BASE_RH as BASE, useRecurso } from "@/lib/http/recurso";
+import { BASE_RH as BASE, useRecurso, type Estado } from "@/lib/http/recurso";
 import {
   adaptarCartoes,
   adaptarOutrasRegras,
@@ -22,9 +22,10 @@ import {
   formatarGeradoEm,
   tiposDaSelecao,
 } from "./adaptadores";
-import { RAIO_X_MOCK } from "./mock";
+import { INDICADOR_FAIXAS_MOCK, RAIO_X_MOCK } from "./mock";
 import type {
   DiagnosticoPainel,
+  IndicadorFaixas,
   RaioXData,
   RaioXPerfil,
   RaioXRegras,
@@ -57,9 +58,59 @@ export function useRaioXPerfil() {
   return useRecurso<RaioXPerfil>(`${BASE}/diagnostico/por-divisao/perfil`, !USAR_MOCK);
 }
 
-/** `/rh/diagnostico` — todas as regras, usadas na aba Qualidade. */
+/** `/rh/diagnostico` — todas as regras, usadas na aba Inconsistências. */
 export function useDiagnosticoPainel() {
   return useRecurso<DiagnosticoPainel>(`${BASE}/diagnostico`, !USAR_MOCK);
+}
+
+/* ------------------------------------------------------------------ */
+/* Indicador: faixa etária dos dependentes                             */
+/* ------------------------------------------------------------------ */
+
+export interface FiltrosFaixas {
+  divisao?: string | null;
+  subdivisao?: string | null;
+  vinculo?: string | null;
+  /** `true` força o backend a reler o SIP. Só quando a pessoa pede. */
+  atualizar?: boolean;
+}
+
+/**
+ * Monta o caminho do indicador enviando **só os filtros preenchidos**.
+ * Sem nenhum, a API devolve a Prefeitura inteira.
+ *
+ * O caminho é relativo (`/api/rh/...`) como todas as outras rotas: quem fala
+ * com o backend é o rewrite do `next.config.ts`, nunca o navegador direto.
+ */
+export function caminhoFaixaDependentes(filtros: FiltrosFaixas = {}): string {
+  const params = new URLSearchParams();
+  if (filtros.divisao) params.set("divisao", filtros.divisao);
+  if (filtros.subdivisao) params.set("subdivisao", filtros.subdivisao);
+  if (filtros.vinculo) params.set("vinculo", filtros.vinculo);
+  if (filtros.atualizar) params.set("atualizar", "true");
+
+  const query = params.toString();
+  return `${BASE}/indicadores/faixa-dependentes${query ? `?${query}` : ""}`;
+}
+
+/**
+ * `/rh/indicadores/faixa-dependentes` — faixas etárias dos dependentes.
+ *
+ * Fica fora de `useRaioX` de propósito: o gráfico vive numa aba só e não deve
+ * bloquear o esqueleto da tela inteira enquanto carrega.
+ */
+export function useFaixaDependentes(filtros: FiltrosFaixas = {}): Estado<IndicadorFaixas> {
+  const estado = useRecurso<IndicadorFaixas>(caminhoFaixaDependentes(filtros), !USAR_MOCK);
+
+  if (!USAR_MOCK) return estado;
+  return {
+    ...estado,
+    data: INDICADOR_FAIXAS_MOCK,
+    isLoading: false,
+    isError: false,
+    erro: null,
+    status: 200,
+  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -113,7 +164,9 @@ export function useRaioX({ sec = "ALL" }: { sec?: string } = {}): UseRaioXResult
       locais: adaptado.locais,
       cargos: adaptado.cargos,
       tipoVinculo: tiposDaSelecao(adaptado.tipos, sec),
-      // A API ainda não expõe estes dois blocos; a tela mostra o empty state.
+      // `pisFicticio` a API ainda não expõe. `faixaDependentes` segue aqui só
+      // para não quebrar o tipo: o indicador de verdade é lido por
+      // `useFaixaDependentes`, que tem endpoint próprio e estado próprio.
       pisFicticio: {},
       faixaDependentes: {},
       alertas: adaptarOutrasRegras(painel.data, regras.data.cartoes, divisao),

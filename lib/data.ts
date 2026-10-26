@@ -1,6 +1,7 @@
 /**
  * Dados de demonstração das telas que ainda não têm backend
- * (Vendas, Clientes, Produtos).
+ * (Vendas, Clientes e a página de Afastamentos, que ainda exibe o conteúdo de
+ * catálogo herdado da antiga tela de Produtos).
  *
  * Visão geral e Raio-X não usam este módulo: leem `/rh/*` via `lib/http/recurso.ts`.
  */
@@ -269,7 +270,7 @@ export interface ReportItem {
 }
 
 export const reports: ReportItem[] = [
-  { title: "Fechamento comercial mensal", description: "Receita, meta e desvio por regional com comentário do time.", owner: "Ana Vasques", updated: "há 2 h", schedule: "Todo dia 1º", tag: "Vendas" },
+  { title: "Fechamento comercial mensal", description: "Receita, meta e desvio por regional com comentário do time.", owner: "Administrador", updated: "há 2 h", schedule: "Todo dia 1º", tag: "Vendas" },
   { title: "Cohort de retenção", description: "Retenção por safra de aquisição e receita recorrente.", owner: "Time de Growth", updated: "ontem", schedule: "Semanal, seg 08h", tag: "Clientes" },
   { title: "Margem por categoria", description: "Margem bruta, frete e devoluções por categoria de produto.", owner: "Financeiro", updated: "há 3 dias", tag: "Financeiro" },
   { title: "Curva ABC de produtos", description: "Concentração de receita e giro dos 200 SKUs mais vendidos.", owner: "Comercial", updated: "há 4 dias", schedule: "Mensal", tag: "Produto" },
